@@ -26,6 +26,9 @@ void ofApp::setup() {
 	
 	world.setup();
 
+	camera.rotate(-95, 0, 0, 1);
+	camera.rotate(135, 1, 0, 0);
+
 	
 	world.setCamera(&camera);
 	

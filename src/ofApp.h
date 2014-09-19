@@ -34,13 +34,14 @@ public:
 	
 	float						jointLength;
 	
-	ofCamera					camera;
+	ofEasyCam camera;
 	ofLight						light;
 	ofVec3f						mousePos;
 
-	float cameraX, cameraY, cameraZ;
-	float cameraAngle;
-	int angleX, angleY, angleZ;
-	bool angleUpdate;
-		
+	int tiltCamera;
+	int t;
+
+	ofNode cameraLookAtNode;
+
+	ofEasyCam camera2;
 };

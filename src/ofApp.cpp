@@ -4,39 +4,32 @@
 #define round(x) (x<0?ceil((x)-0.5):floor((x)+0.5))
 #endif
 
+#define SCREEN_WIDTH 1280.f
+#define SCREEN_HEIGHT 800.f
+
+
 //--------------------------------------------------------------
 void ofApp::setup() {
 	ofSetFrameRate(60);
 	ofSetVerticalSync(true);
-	ofBackground( 10, 10, 10);
+	ofBackground( 0, 0, 0);
 	
-	cameraX = 1.f;
-	cameraY = -1.f;
-	cameraZ = 1.f;
-
-	cameraAngle = 0;
-	angleX = 0;
-	angleY = 0;
-	angleZ = 0;
-
-	angleUpdate = false;
-
-	camera.setPosition(ofVec3f(cameraX, cameraY, cameraZ));
+	camera.setPosition(ofVec3f(0, -4.f, -10.f));
 	camera.lookAt(ofVec3f(0, 0, 0), ofVec3f(0, -1, 0));
+
+	camera2.setPosition(ofVec3f(0.f, -24.f, 0.f));
+	camera2.lookAt(ofVec3f(0, 0, 0), ofVec3f(0, -1, 0));
+
+	cameraLookAtNode.setPosition(0,-1,0);
+	camera.lookAt(cameraLookAtNode, ofVec3f(0, -1, 0));
 	
 	world.setup();
-
-	camera.rotate(-95, 0, 0, 1);
-	camera.rotate(135, 1, 0, 0);
-
-	
 	world.setCamera(&camera);
 	
 	ground = new ofxBulletBox();
-	ground->create( world.world, ofVec3f(0., 5., 0.), 0., 10, 1.f, 10.f );
+	ground->create( world.world, ofVec3f(0., 5.5, 0.), 0., SCREEN_WIDTH, 1.f, SCREEN_HEIGHT);
 	ground->setProperties(.25, .95);
 	ground->add();
-	
 	
 	colors[0] = ofColor(15,197,138);
 	colors[1] = ofColor(220, 0, 220);
@@ -61,7 +54,6 @@ void ofApp::setup() {
 	
 	ofHideCursor();
 }
-
 //--------------------------------------------------------------
 void ofApp::update() {
 	world.update();
@@ -87,11 +79,6 @@ void ofApp::update() {
 		}
 	}
 
-	camera.setPosition(ofVec3f(cameraX,cameraY, cameraZ));
-	if (angleUpdate == true){
-		camera.rotate(cameraAngle, angleX, angleX, angleZ);
-		angleUpdate = 0;
-	}
 }
 
 //--------------------------------------------------------------
@@ -102,10 +89,15 @@ void ofApp::draw() {
 	glEnable( GL_DEPTH_TEST );
 	camera.begin();
 
+	camera.draw();
+	camera2.draw();
+
 	ofDrawAxis(10.f);
 	
 	ofSetLineWidth(1.f);
-	if(bDrawDebug) world.drawDebug();
+	if(bDrawDebug){
+		world.drawDebug();
+	}
 	
 	ofSetColor(255, 255, 255);
 	ofSphere(mousePos, .15f);
@@ -128,6 +120,10 @@ void ofApp::draw() {
 	}
 	light.disable();
 	ofDisableLighting();
+
+	ofVec3f v1 = camera2.getGlobalPosition();
+	ofVec3f v2 = cameraLookAtNode.getGlobalPosition();
+    ofLine(v1,v2);
 	
 	camera.end();
 	glDisable(GL_DEPTH_TEST);
@@ -138,9 +134,6 @@ void ofApp::draw() {
 	ss << "num shapes: " << (shapes.size()) << endl;
 	ss << "draw debug (d): " << ofToString(bDrawDebug, 0) << endl;
 	ss << "break joints with spacebar: " << bSpacebar << endl;
-	ss << "Camera " << endl;
-	ss << "X: " << cameraX << " Y: " << cameraY << " Z: " << cameraZ << endl;
-	ss << "Angle: " << cameraAngle << " x: " << angleX << " y: " << angleY << " z: " << angleZ << endl;
 	ofDrawBitmapString(ss.str().c_str(), 10, 10);
 
 	
@@ -151,69 +144,9 @@ void ofApp::draw() {
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
 	switch (key) {
-		case ' ':
-			bSpacebar = true;
-			break;
 		case 'd':
 			bDrawDebug = !bDrawDebug;
 			break;
-		case 356:
-			cameraZ += 1;
-			break;
-		case 357:
-			cameraX -= 1;
-			break;
-		case 358:
-			cameraZ -= 1;
-			break;
-		case 359:
-			cameraX += 1;
-			break;
-		case 'e':
-			cameraY -= 1;
-			break;
-		case 'r':
-			cameraY += 1;
-			break;
-
-		case 'u':
-			cameraAngle += 1;
-			break;
-		case 'i':
-			cameraAngle -= 1;
-			break;
-
-		case 'j':
-			if (angleX == 1){
-				angleX = 0;
-			} else {
-				angleX = 1;
-			}
-			angleUpdate = true;
-			break;
-
-		case 'k':
-			if (angleY == 1){
-				angleY = 0;
-			} else {
-				angleY = 1;
-			}
-			angleUpdate = true;
-			break;
-
-
-		case 'l':
-			if (angleZ == 1){
-				angleZ = 0;
-			} else {
-				angleZ = 1;
-			}
-			angleUpdate = true;
-			break;
-
-
-			
-
 			
 		default:
 			cout << "keyPressed " << (char)key << " " << key << endl;
@@ -238,41 +171,7 @@ void ofApp::mouseDragged(int x, int y, int button) {
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button) {
-	if(bShapesNeedErase) {
-		for (int i = 1; i < shapes.size(); i++) {
-			delete shapes[i];
-		}
-		shapes.erase( shapes.begin()+1, shapes.end() );
-		bShapesNeedErase = false;
-		shapeColors.erase(shapeColors.begin()+1, shapeColors.end());
-	}
-	
-	float rsize = ofRandom(.15, .3);
-	
-	ofVec3f diff;
-	if(shapes.size() < 2) {
-		diff = mousePos - shapes[0]->getPosition();
-	} else {
-		diff = shapes[shapes.size()-2]->getPosition() - shapes[shapes.size()-1]->getPosition();
-	}
-	diff.normalize();
-	if(shapes.size() < 2) {
-		diff *= -(jointLength*2.f);
-	} else {
-		diff *= -jointLength;
-	}
-	diff += shapes[shapes.size()-1]->getPosition();
-	
-	shapes.push_back( new ofxBulletSphere() );
-	((ofxBulletSphere*)shapes[shapes.size()-1])->create( world.world, diff, .8, rsize );
-	shapes[shapes.size()-1]->add();
-	
-	shapeColors.push_back( colors[(int)round(ofRandom(0, 3))] );
-	
-	
-	joints.push_back( new ofxBulletJoint() );
-	joints[joints.size()-1]->create(world.world, shapes[shapes.size()-1], shapes[shapes.size()-2]->getPosition());
-	joints[joints.size()-1]->add();
+
 }
 
 //--------------------------------------------------------------

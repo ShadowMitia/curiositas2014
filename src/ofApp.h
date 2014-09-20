@@ -2,6 +2,8 @@
 
 #include "ofMain.h"
 #include "ofxBullet.h"
+#include "ofxKinect.h"
+#include "ofxOpenNI2.h"
 
 class ofApp : public ofBaseApp{
 
@@ -19,6 +21,7 @@ public:
 	void windowResized(int w, int h);
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
+	void exit();
 	
 	ofxBulletWorldRigid			world;
 	ofxBulletBox*				ground;
@@ -54,4 +57,15 @@ public:
 	float a, b, c;
 
 	ofLight sceneLight;
+
+
+	///////// KINECT
+
+	ofxKinect kinectPlayer1;
+	ofxKinect kinectPlayer2;
+
+	//////// OFXOPENNI2
+
+	ofxOpenNI2 openNISystem;
+
 };

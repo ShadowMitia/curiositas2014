@@ -10,6 +10,49 @@
 
 //--------------------------------------------------------------
 void ofApp::setup() {
+
+	ofLogLevel(OF_LOG_VERBOSE);
+
+
+	/////// KINECT STUFF
+	
+	// enable depth->video image calibration
+	kinectPlayer1.setRegistration(true);
+
+	// open a kinect by id, starting with 0 (sorted by serial # lexicographically))
+
+	kinectPlayer1.init();
+	kinectPlayer1.open(0);
+
+	kinectPlayer2.init();
+	kinectPlayer2.open(1);
+
+
+
+	if (kinectPlayer1.isConnected()) {
+		ofLogNotice() << "Kinect Player 1 " << kinectPlayer1.getSerial();
+		ofLogNotice() << "sensor-emitter dist: " << kinectPlayer1.getSensorEmitterDistance() << "cm";
+		ofLogNotice() << "sensor-camera dist:  " << kinectPlayer1.getSensorCameraDistance() << "cm";
+		ofLogNotice() << "zero plane pixel size: " << kinectPlayer1.getZeroPlanePixelSize() << "mm";
+		ofLogNotice() << "zero plane dist: " << kinectPlayer1.getZeroPlaneDistance() << "mm";
+	}
+
+	if (kinectPlayer2.isConnected() ){
+		ofLogNotice() << "Kinect Player 2 " << kinectPlayer2.getSerial();
+		ofLogNotice() << "sensor-emitter dist: " << kinectPlayer2.getSensorEmitterDistance() << "cm";
+		ofLogNotice() << "sensor-camera dist:  " << kinectPlayer2.getSensorCameraDistance() << "cm";
+		ofLogNotice() << "zero plane pixel size: " << kinectPlayer2.getZeroPlanePixelSize() << "mm";
+		ofLogNotice() << "zero plane dist: " << kinectPlayer2.getZeroPlaneDistance() << "mm";
+	}
+
+
+	/////// OPENNI2
+
+	openNISystem.setup();
+
+
+
+
 	ofSetFrameRate(60);
 	ofSetVerticalSync(true);
 	ofBackground( 0, 0, 0);
@@ -29,8 +72,12 @@ void ofApp::setup() {
 	c = 0;
 
 
+	camera2.setDistance(3.f);
+	camera2.setNearClip(0.01f);
+	camera2.setFarClip(500.0f);
 	camera2.setPosition(ofVec3f(x, y, z));
-	camera2.lookAt(ofVec3f(a, b, c), ofVec3f(xx, yy, zz));
+	//camera2.lookAt(ofVec3f(0.000001, b, c), ofVec3f(0, -1, 0));
+	camera2.lookAt(ofVec3f(0.0000001, 0, 0), ofVec3f(0, -1, 0));
 
 	camera2.setFov(fov);
 
@@ -74,6 +121,8 @@ void ofApp::setup() {
 }
 //--------------------------------------------------------------
 void ofApp::update() {
+
+
 	world.update();
 	ofSetWindowTitle(ofToString(ofGetFrameRate(), 0));
 	
@@ -97,14 +146,22 @@ void ofApp::update() {
 		}
 	}
 
+	kinectPlayer1.update();
+	kinectPlayer2.update();
+
 }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
+
+
+
+
+
 	ofDrawAxis(10.f);
 
 
-	glEnable( GL_DEPTH_TEST );
+	ofEnableDepthTest();
 	sceneLight.enable();
 	camera2.begin();
 
@@ -114,7 +171,7 @@ void ofApp::draw() {
 	camera2.setFov(fov);
 	camera2.setPosition(x, y, z);
 
-	camera2.lookAt(ofVec3f(a, b, c), ofVec3f(xx, yy, zz));
+	ofRotateY(90);
 
 	ofSetColor(255, 0, 0);
 
@@ -134,7 +191,7 @@ void ofApp::draw() {
 	light.enable();
 	light.setPosition( mousePos );
 	
-	ofSetColor(25, 0, 200);
+	ofSetColor(0, 255, 0);
 	ground->draw();
 	
 	ofSetColor(255, 0, 255);
@@ -154,7 +211,7 @@ void ofApp::draw() {
 	ofVec3f v2 = cameraLookAtNode.getGlobalPosition();
     ofLine(v1,v2);
 	*/
-	ofSphere(0, 0, 0, 20);
+
 	
 	
 	camera2.end();
@@ -172,6 +229,22 @@ void ofApp::draw() {
 	ss << "yy : " << yy << endl;
 	ss << "a: " << a << " b: " << b << " c: " << c << endl;
 	ofDrawBitmapString(ss.str().c_str(), 10, 10);
+
+
+	kinectPlayer1.draw(0,0);
+	//kinectPlayer1.drawDepth(640, 0);
+	kinectPlayer2.draw(0, 400);
+	//kinectPlayer2.drawDepth(640, 400);
+
+	ofSetColor(255, 0, 0);
+
+	if (!kinectPlayer1.isConnected() ) {
+		ofDrawBitmapString("Kinect Player 1 not found", 0, SCREEN_HEIGHT / 2);
+	}
+
+	if (!kinectPlayer2.isConnected() ){
+		ofDrawBitmapString("Kinect Player 2 not found", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+	}
 
 	
 }
@@ -223,20 +296,20 @@ void ofApp::keyPressed(int key) {
 			break;
 
 		case 'w':
-			a++;
+			a+=0.0000001;
 			break;
 		case 'x':
-			a--;
+			a-=0.0000001;
 			break;
 		case 'c':
-			b++;
+			b+=0.001;
 			break;
 		case 'v':
 			b--;
 			break;
 
 		case 'b':
-			c++;
+			c-=0.0001;
 			break;
 
 		case 'n':
@@ -289,4 +362,14 @@ void ofApp::gotMessage(ofMessage msg) {
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo) { 
 	
+}
+
+
+//--------------------------------------------------------------
+void ofApp::exit() {
+	kinectPlayer1.setCameraTiltAngle(0); // zero the tilt on exit
+	kinectPlayer2.close();
+	
+	kinectPlayer2.setCameraTiltAngle(0);
+	kinectPlayer2.close();
 }

@@ -44,4 +44,14 @@ public:
 	ofNode cameraLookAtNode;
 
 	ofEasyCam camera2;
+
+
+	float fov;
+	float x, y, z;
+
+	float xx, yy, zz;
+
+	float a, b, c;
+
+	ofLight sceneLight;
 };

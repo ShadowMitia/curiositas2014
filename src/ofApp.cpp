@@ -129,7 +129,7 @@ void ofApp::setup() {
 	grayThreshNear.allocate(kinectPlayer1.width, kinectPlayer1.height);
 	grayThreshFar.allocate(kinectPlayer1.width, kinectPlayer1.height);
 	
-	nearThreshold = 230;
+	nearThreshold = 260;
 	farThreshold = 70;
 	bThreshWithOpenCV = true;
 	
@@ -151,11 +151,17 @@ void ofApp::setup() {
     bri.allocate(kinectPlayer1.width, kinectPlayer1.height);
     filtered.allocate(kinectPlayer1.width, kinectPlayer1.height);
 
+	targetSat = 62;
+	targetBri = 66;
+	targetHue = 143;
 
 
 }
 //--------------------------------------------------------------
 void ofApp::update() {
+
+	ofSetWindowTitle(ofToString(ofGetFrameRate(), 0));
+
 	///// OPENCV
 	kinectPlayer1.update();
 
@@ -178,29 +184,40 @@ void ofApp::update() {
 
         //copy webcam pixels to rgb image
 		rgb.setFromPixels(kinectPlayer1.getPixels(),kinectPlayer1.getWidth(), kinectPlayer1.getHeight());
-        
-        //duplicate rgb
-        hsb = rgb;
-        
+
+
+		hsb = rgb;
         //convert to hsb
+		//store the three channels as grayscale images
         hsb.convertRgbToHsv();
-        
-        //store the three channels as grayscale images
-        hsb.convertToGrayscalePlanarImages(hue, sat, bri);
-        
+		hsb.convertToGrayscalePlanarImages(hue, sat, bri);
+
         //filter image based on the hue value were looking for
         for (int i=0; i<kinectPlayer1.width*kinectPlayer1.height; i++) {
-            filtered.getPixels()[i] = ofInRange(hue.getPixels()[i],targetHue-5,targetHue+5) ? 255 : 0;
+			filtered.getPixels()[i] = ofInRange(hue.getPixels()[i],targetHue-5, targetHue+5) /* && ofInRange(sat.getPixels()[i],targetSat-3,targetHue+3) */ ? 255 : 0;
         }
 
-		//cvAnd(filtered.getCvImage(), grayImage.getCvImage(), grayImage.getCvImage());
+
+		for (int i = 0; i < 3; i++) {
+			grayImage.erode();
+			filtered.erode();
+		}
+		
+		for (int i = 0; i < 3; i++) {
+			grayImage.dilate();
+			filtered.dilate();
+		}
+
+
+
 		
 		// update the cv images
 		grayImage.flagImageChanged();
+		filtered.flagImageChanged();
 		
-		// find contours which are between the size of 20 pixels and 1/3 the w*h pixels.
+		// find contours which are between the size of 100 pixels and 1/2 the w*h pixels.
 		// also, find holes is set to true so we will get interior contours as well....
-		contourFinder.findContours(grayImage, 10, (kinectPlayer1.width*kinectPlayer1.height)/2, 20, false);
+		contourFinder.findContours(filtered, 100, (kinectPlayer1.width*kinectPlayer1.height)/2, 1, false, true);
 	}
 
 	/////// END OPENCV
@@ -256,7 +273,7 @@ void ofApp::draw() {
 	 
 
 	// draw instructions
-	ofSetColor(255, 255, 255);
+	ofSetColor(255, 0, 0);
 	stringstream reportStream;
         
     if(kinectPlayer1.hasAccelControl()) {
@@ -280,7 +297,7 @@ void ofApp::draw() {
         << "press 1-5 & 0 to change the led mode" << endl;
     }
 
-	reportStream << "HUE: " << targetHue << endl;
+	reportStream << "HUE: " << targetHue << " SAT: " << targetSat << " BRI: " << targetBri << endl;
     
 	ofDrawBitmapString(reportStream.str(), 20, 652);
     
@@ -364,8 +381,8 @@ void ofApp::draw() {
 }
 
 void ofApp::drawPointCloud() {
-	int w = 640;
-	int h = 480;
+	int w = kinectPlayer1.getWidth();
+	int h = kinectPlayer1.getHeight();
 	ofMesh mesh;
 	mesh.setMode(OF_PRIMITIVE_POINTS);
 	int step = 2;
@@ -505,7 +522,9 @@ void ofApp::mousePressed(int x, int y, int button) {
     int my = y % (int)kinectPlayer1.getHeight();
 
 	    //get hue value on mouse position
-    targetHue = hue.getPixels()[my*w+mx];
+	targetHue = hue.getPixels()[my* (int)kinectPlayer1.getWidth() +mx];
+	targetSat = sat.getPixels()[my* (int)kinectPlayer1.getWidth() +mx];
+	targetBri = bri.getPixels()[my* (int)kinectPlayer1.getWidth() +mx];
   
 }
 

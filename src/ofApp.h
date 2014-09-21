@@ -1,7 +1,10 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxBullet.h"
+//#include "ofxBullet.h"
+#include "ofxOpenNI2.h"
+#include "ofxKinect.h"
+#include "ofxOpenCv.h"
 
 class ofApp : public ofBaseApp{
 
@@ -19,7 +22,9 @@ public:
 	void windowResized(int w, int h);
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
+	void exit();
 	
+	/*
 	ofxBulletWorldRigid			world;
 	ofxBulletBox*				ground;
 	
@@ -44,6 +49,8 @@ public:
 	ofNode cameraLookAtNode;
 
 	ofEasyCam camera2;
+	*/
+	ofEasyCam easyCam;
 
 
 	float fov;
@@ -54,4 +61,33 @@ public:
 	float a, b, c;
 
 	ofLight sceneLight;
+
+	ofxKinect kinectPlayer1;
+
+
+	ofxOpenNI2 openNISystem;
+
+
+	ofxCvColorImage colorImg;
+	
+	ofxCvGrayscaleImage grayImage; // grayscale depth image
+	ofxCvGrayscaleImage grayThreshNear; // the near thresholded image
+	ofxCvGrayscaleImage grayThreshFar; // the far thresholded image
+
+	ofxCvColorImage rgb,hsb;
+	ofxCvGrayscaleImage hue, sat, bri, filtered;
+	
+	ofxCvContourFinder contourFinder;
+	
+	bool bThreshWithOpenCV;
+	bool bDrawPointCloud;
+	
+	int nearThreshold;
+	int farThreshold;
+	
+	int angle;
+
+	int targetHue;
+
+	void drawPointCloud();
 };

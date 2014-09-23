@@ -143,14 +143,23 @@ void ofApp::setup() {
     bri.allocate(kinectPlayer1.width, kinectPlayer1.height);
     filtered.allocate(kinectPlayer1.width, kinectPlayer1.height);
 
-
+	w = 320;
+    h = 240;
+    
+    //reserve memory for cv images
+    rgb.allocate(w, h);
+    hsb.allocate(w, h);
+    hue.allocate(w, h);
+    sat.allocate(w, h);
+    bri.allocate(w, h);
+    filtered.allocate(w, h);
 
 }
 //--------------------------------------------------------------
 void ofApp::update() {
 	///// OPENCV
 	kinectPlayer1.update();
-
+	/*
 // there is a new frame and we are connected
 	if(kinectPlayer1.isFrameNew()) {
 		
@@ -194,6 +203,35 @@ void ofApp::update() {
 		// also, find holes is set to true so we will get interior contours as well....
 		contourFinder.findContours(grayImage, 10, (kinectPlayer1.width*kinectPlayer1.height)/2, 20, false);
 	}
+	*/
+
+	if (kinectPlayer1.isFrameNew()) {
+        
+        //copy webcam pixels to rgb image
+        rgb.setFromPixels(kinectPlayer1.getPixels(), w, h);
+        
+        //mirror horizontal
+        rgb.mirror(false, true);
+        
+        //duplicate rgb
+        hsb = rgb;
+        
+        //convert to hsb
+        hsb.convertRgbToHsv();
+        
+        //store the three channels as grayscale images
+        hsb.convertToGrayscalePlanarImages(hue, sat, bri);
+        
+        //filter image based on the hue value were looking for
+        for (int i=0; i<w*h; i++) {
+            filtered.getPixels()[i] = ofInRange(hue.getPixels()[i],findHue-5,findHue+5) ? 255 : 0;
+        }
+
+        filtered.flagImageChanged();
+        //run the contour finder on the filtered image to find blobs with a certain hue
+        contours.findContours(filtered, 50, w*h/2, 1, false);
+    }
+
 
 	/////// END OPENCV
 
@@ -227,6 +265,8 @@ void ofApp::update() {
 
 //--------------------------------------------------------------
 void ofApp::draw() {
+
+
 
 	//////////// OPENCV
 
@@ -352,6 +392,29 @@ void ofApp::draw() {
 	ss << "a: " << a << " b: " << b << " c: " << c << endl;
 	ofDrawBitmapString(ss.str().c_str(), 10, 10);
 	*/
+
+
+
+
+
+	ofSetColor(255,255,255);
+    
+    //draw all cv images
+    rgb.draw(0,0);
+    hsb.draw(640,0);
+    hue.draw(0,240);
+    sat.draw(320,240);
+    bri.draw(640,240);
+    filtered.draw(0,480);
+    contours.draw(0,480);
+    
+    ofSetColor(255, 0, 0);
+    ofFill();
+    
+    //draw red circles for found blobs
+    for (int i=0; i<contours.nBlobs; i++) {
+        ofCircle(contours.blobs[i].centroid.x, contours.blobs[i].centroid.y, 20);
+    }  
 	
 }
 
@@ -497,7 +560,7 @@ void ofApp::mousePressed(int x, int y, int button) {
     int my = y % (int)kinectPlayer1.getHeight();
 
 	    //get hue value on mouse position
-    targetHue = hue.getPixels()[my*w+mx];
+	targetHue = hue.getPixels()[my*(int)kinectPlayer1.getWidth()+mx];
   
 }
 

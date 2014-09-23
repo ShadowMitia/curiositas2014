@@ -67,7 +67,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <AdditionalDependencies>%(AdditionalDependencies);libusbd.lib;opencv_calib3d231d.lib;opencv_contrib231d.lib;opencv_core231d.lib;opencv_features2d231d.lib;opencv_flann231d.lib;opencv_gpu231d.lib;opencv_haartraining_engined.lib;opencv_highgui231d.lib;opencv_imgproc231d.lib;opencv_legacy231d.lib;opencv_ml231d.lib;opencv_objdetect231d.lib;opencv_video231d.lib;zlibd.lib;OpenNI2.lib;NiTE2.lib;cuda.lib;OpenCL.lib;BulletCollision_debug.lib;BulletDynamics_debug.lib;BulletSoftBody_debug.lib;LinearMath_debug.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);libusbd.lib;opencv_calib3d231d.lib;opencv_contrib231d.lib;opencv_core231d.lib;opencv_features2d231d.lib;opencv_flann231d.lib;opencv_gpu231d.lib;opencv_haartraining_engined.lib;opencv_highgui231d.lib;opencv_imgproc231d.lib;opencv_legacy231d.lib;opencv_ml231d.lib;opencv_objdetect231d.lib;opencv_video231d.lib;zlibd.lib;BulletCollision_debug.lib;BulletDynamics_debug.lib;BulletSoftBody_debug.lib;LinearMath_debug.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);..\..\..\addons\ofxKinect\libs\libusb-win32\lib\vs;..\..\..\addons\ofxOpenCv\libs\opencv\lib\vs;..\..\..\addons\ofxBullet\libs\bullet2.8.1\lib\vs</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -126,6 +126,7 @@
     <ClCompile Include="..\..\..\addons\ofxBullet\src\shapes\ofxBulletCylinder.cpp" />
     <ClCompile Include="..\..\..\addons\ofxBullet\src\shapes\ofxBulletSphere.cpp" />
     <ClCompile Include="..\..\..\addons\ofxBullet\src\shapes\ofxBulletStaticPlane.cpp" />
+    <ClCompile Include="src\testApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ofApp.h" />
@@ -262,6 +263,7 @@
     <ClInclude Include="..\..\..\addons\ofxBullet\src\shapes\ofxBulletCylinder.h" />
     <ClInclude Include="..\..\..\addons\ofxBullet\src\shapes\ofxBulletSphere.h" />
     <ClInclude Include="..\..\..\addons\ofxBullet\src\shapes\ofxBulletStaticPlane.h" />
+    <ClInclude Include="src\testApp.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj">

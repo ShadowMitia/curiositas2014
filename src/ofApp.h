@@ -62,17 +62,18 @@ public:
 	ofLight sceneLight;
 
 	ofxKinect kinectPlayer1;
+	
 
+	///// OPENCV METHOD 1
 	ofxCvColorImage colorImg;
 	
 	ofxCvGrayscaleImage grayImage; // grayscale depth image
 	ofxCvGrayscaleImage grayThreshNear; // the near thresholded image
 	ofxCvGrayscaleImage grayThreshFar; // the far thresholded image
 
-	ofxCvColorImage rgb,hsb;
-	ofxCvGrayscaleImage hue, sat, bri, filtered;
-	
 	ofxCvContourFinder contourFinder;
+
+
 	
 	bool bThreshWithOpenCV;
 	bool bDrawPointCloud;
@@ -81,8 +82,24 @@ public:
 	int farThreshold;
 	
 	int angle;
+	/////// END OPENCV 1
+
+	///// OPENCV METHOD 2
+
+	ofxCvColorImage rgb,hsb;
+	ofxCvGrayscaleImage hue, sat, bri, filtered;
+	
+	ofxCvContourFinder contours;
+
+	int w, h;
+	int findHue;
+
+	/////// END OPENCV 2
+
 
 	int targetHue;
+
+
 
 	void drawPointCloud();
 };

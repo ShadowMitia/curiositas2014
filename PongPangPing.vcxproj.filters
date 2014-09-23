@@ -115,6 +115,9 @@
     <ClCompile Include="..\..\..\addons\ofxBullet\src\shapes\ofxBulletStaticPlane.cpp">
       <Filter>addons\ofxBullet\src\shapes</Filter>
     </ClCompile>
+    <ClCompile Include="src\testApp.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -658,6 +661,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\addons\ofxBullet\src\shapes\ofxBulletStaticPlane.h">
       <Filter>addons\ofxBullet\src\shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\testApp.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

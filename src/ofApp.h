@@ -83,8 +83,6 @@ public:
 	int angle;
 
 	int targetHue;
-	int targetSat;
-	int targetBri;
 
 	void drawPointCloud();
 };

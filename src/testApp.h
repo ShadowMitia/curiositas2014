@@ -20,7 +20,7 @@ public:
     ofxCvContourFinder contours;
     
     int w,h;
-    int findHue;
+    int findHue, findSat;
 };
 
 #endif

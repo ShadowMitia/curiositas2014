@@ -31,28 +31,50 @@ void testApp::update(){
     if (movie.isFrameNew()) {
         
         //copy webcam pixels to rgb image
-		rgb.setFromPixels(movie.getPixels(), movie.getWidth(), movie.getHeight());
+		rgb.setFromPixels(movie.getPixels(), w,h);
         
         //mirror horizontal
         rgb.mirror(false, true);
         
-        //duplicate rgb
-        hsb = rgb;
+
         
         //convert to hsb
         hsb.convertRgbToHsv();
+
+
+
+		//duplicate rgb
+        hsb = rgb;
+		
         
         //store the three channels as grayscale images
         hsb.convertToGrayscalePlanarImages(hue, sat, bri);
+
+
         
         //filter image based on the hue value were looking for
         for (int i=0; i<w*h; i++) {
-            filtered.getPixels()[i] = ofInRange(hue.getPixels()[i],findHue-5,findHue+5) ? 255 : 0;
+			filtered.getPixels()[i] = ofInRange(hue.getPixels()[i],findHue-3,findHue+3) /*&& ofInRange(sat.getPixels()[i], findSat-5, findSat+5 ) */? 255 : 0;
         }
+
+
+		for (int i = 0; i < 3; i++){
+			filtered.dilate();
+		}
+
+
+		for (int i = 0; i < 3; i++){
+			filtered.erode();
+		}
+
+
+
+		
+		
 
         filtered.flagImageChanged();
         //run the contour finder on the filtered image to find blobs with a certain hue
-        contours.findContours(filtered, 50, w*h/2, 1, false);
+        contours.findContours(filtered, 50, w*h/2, 1, false, true);
     }
 }
 
@@ -87,4 +109,5 @@ void testApp::mousePressed(int x, int y, int button) {
     
     //get hue value on mouse position
     findHue = hue.getPixels()[my*w+mx];
+	findHue = sat.getPixels()[my*w+mx];
 }

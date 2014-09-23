@@ -2,7 +2,6 @@
 
 #include "ofMain.h"
 //#include "ofxBullet.h"
-#include "ofxOpenNI2.h"
 #include "ofxKinect.h"
 #include "ofxOpenCv.h"
 
@@ -63,10 +62,6 @@ public:
 	ofLight sceneLight;
 
 	ofxKinect kinectPlayer1;
-
-
-	ofxOpenNI2 openNISystem;
-
 
 	ofxCvColorImage colorImg;
 	

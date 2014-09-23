@@ -38,14 +38,6 @@ void ofApp::setup() {
 
 	/*
 
-	/////// OPENNI2
-
-	openNISystem.setup();
-
-	openNISystem.start();
-
-	///// END OPENNI
-
 
 	ofSetFrameRate(60);
 	ofSetVerticalSync(true);

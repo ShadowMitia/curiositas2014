@@ -1,105 +1,33 @@
-#pragma once
+#ifndef _TEST_APP
+#define _TEST_APP
 
 #include "ofMain.h"
-//#include "ofxBullet.h"
-#include "ofxKinect.h"
 #include "ofxOpenCv.h"
+#include "ofxKinect.h"
 
-class ofApp : public ofBaseApp{
+#include <vector>
 
+class testApp : public ofBaseApp{
 public:
-	void setup();
-	void update();
-	void draw();
+    void setup();
+    void update();
+    void draw();
 
-	void keyPressed  (int key);
-	void keyReleased(int key);
-	void mouseMoved(int x, int y );
-	void mouseDragged(int x, int y, int button);
-	void mousePressed(int x, int y, int button);
-	void mouseReleased(int x, int y, int button);
-	void windowResized(int w, int h);
-	void dragEvent(ofDragInfo dragInfo);
-	void gotMessage(ofMessage msg);
-	void exit();
-	
-	/*
-	ofxBulletWorldRigid			world;
-	ofxBulletBox*				ground;
-	
-	vector<ofxBulletBaseShape*> shapes;
-	vector<ofxBulletJoint*>		joints;
-	vector<ofColor>				shapeColors;
-	ofColor						colors[4];
-	
-	bool						bDrawDebug;
-	bool						bSpacebar;
-	bool						bShapesNeedErase;
-	
-	float						jointLength;
-	
-	ofEasyCam camera;
-	ofLight						light;
-	ofVec3f						mousePos;
+    void mousePressed(int x, int y, int button);
 
-	int tiltCamera;
-	int t;
+	ofxKinect kinect[2];
+    
+    ofxCvColorImage rgb, hsb;
+    ofxCvGrayscaleImage hue,sat,bri,filtered;
+	ofxCvColorImage red, green, blue;
+    ofxCvContourFinder contours;
+    
+    int w,h;
+    int findHue;
+	int findSat;
+	int findBri;
 
-	ofNode cameraLookAtNode;
-
-	ofEasyCam camera2;
-	*/
-	ofEasyCam easyCam;
-
-
-	float fov;
-	float x, y, z;
-
-	float xx, yy, zz;
-
-	float a, b, c;
-
-	ofLight sceneLight;
-
-	ofxKinect kinectPlayer1;
-	
-
-	///// OPENCV METHOD 1
-	ofxCvColorImage colorImg;
-	
-	ofxCvGrayscaleImage grayImage; // grayscale depth image
-	ofxCvGrayscaleImage grayThreshNear; // the near thresholded image
-	ofxCvGrayscaleImage grayThreshFar; // the far thresholded image
-
-	ofxCvContourFinder contourFinder;
-
-
-	
-	bool bThreshWithOpenCV;
-	bool bDrawPointCloud;
-	
-	int nearThreshold;
-	int farThreshold;
-	
-	int angle;
-	/////// END OPENCV 1
-
-	///// OPENCV METHOD 2
-
-	ofxCvColorImage rgb,hsb;
-	ofxCvGrayscaleImage hue, sat, bri, filtered;
-	
-	ofxCvContourFinder contours;
-
-	int w, h;
-	int findHue;
-
-	/////// END OPENCV 2
-
-
-	int targetHue;
-
-
-
-	void drawPointCloud();
+	int findRed, findBlue, findGreen;
 };
+
+#endif

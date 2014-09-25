@@ -1,4 +1,9 @@
+ofx3DModelLoader
+ofxAssimpModelLoader
 ofxKinect
 ofxOpenCv
+ofxOsc
 ofxBullet
-ofxOpenNI2
+ofxEQ
+ofxFluid
+ofxFX

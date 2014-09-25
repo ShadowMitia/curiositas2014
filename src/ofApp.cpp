@@ -2,63 +2,54 @@
 
 //--------------------------------------------------------------
 void testApp::setup() {
+	ofLogLevel(OF_LOG_VERBOSE);
+
     ofBackground(0,0,0);
 
-	
+	kinectPlayer1.setRegistration(true);
+	kinectPlayer1.init();
+	kinectPlayer1.open();
 
-	for (int i = 0; i < 1; i++) {
-		kinect[i].setRegistration(true);
-		kinect[i].init();
-		kinect[i].open();
-	}
+	kinectPlayer2.setRegistration(true);
+	kinectPlayer2.init();
+	kinectPlayer2.open();
 
-	w = kinect[0].getWidth();
-	h = kinect[0].getHeight();
+
+	w = kinectPlayer1.getWidth();
+	h = kinectPlayer1.getHeight();
     
     //reserve memory for cv images
-    rgb.allocate(w, h);
-    hsb.allocate(w, h);
-    hue.allocate(w, h);
-    sat.allocate(w, h);
-    bri.allocate(w, h);
-    filtered.allocate(w, h);
-
-	red.allocate(w, h);
-	green.allocate(w, h);
-	blue.allocate(w, h);
+	rgbKinect1.allocate(w, h);
+	hsbKinect1.allocate(w, h);
+	hueKinect1.allocate(w, h);
+	satKinect1.allocate(w, h);
+	briKinect1.allocate(w, h);
+	filteredKinect1.allocate(w, h);
 
 }
 
 //--------------------------------------------------------------
 void testApp::update(){
     
-    kinect[0].update();
+    kinectPlayer1.update();
+
     
-	if (kinect[0].isFrameNew()) {
+	if (kinectPlayer1.isFrameNew()) {
         
         //copy webcam pixels to rgb image
-        rgb.setFromPixels(kinect[0].getPixels(), w, h);
+		rgbKinect1.setFromPixels(kinectPlayer1.getPixels(), w, h);
         
-		red.set(255, 0, 0);
-		red &= rgb;
-
-		green.set(0,255,0);
-		green &= rgb;
-
-		blue.set(0,0,255);
-		blue &= rgb;
-
         //mirror horizontal
-        rgb.mirror(false, true);
+		rgbKinect1.mirror(false, true);
         
         //duplicate rgb
-        hsb = rgb;
+		hsbKinect1 = rgbKinect1;
         
         //convert to hsb
-        hsb.convertRgbToHsv();
+		hsbKinect1.convertRgbToHsv();
         
         //store the three channels as grayscale images
-        hsb.convertToGrayscalePlanarImages(hue, sat, bri);
+		hsbKinect1.convertToGrayscalePlanarImages(hueKinect1, satKinect1, briKinect1);
 
 
 		
@@ -66,13 +57,48 @@ void testApp::update(){
 
         //filter image based on the hue value were looking for
         for (int i=0; i<w*h; i++) {
-			filtered.getPixels()[i] = ofInRange(hue.getPixels()[i],findHue-5,findHue+5) && ofInRange(sat.getPixels()[i], findSat-2, findSat+2)  ? 255 : 0;
+			filteredKinect1.getPixels()[i] = ofInRange(hueKinect1.getPixels()[i],findHue-5,findHue+5) ? 255 : 0;
         }
 
 
-        filtered.flagImageChanged();
+		filteredKinect1.flagImageChanged();
         //run the contour finder on the filtered image to find blobs with a certain hue
-        contours.findContours(filtered, 200, w*h/2, 1, false, true);
+		contoursKinect1.findContours(filteredKinect1, 200, w*h/2, 1, false, true);
+    }
+
+    kinectPlayer2.update();
+
+    
+	if (kinectPlayer2.isFrameNew()) {
+        
+        //copy webcam pixels to rgb image
+		rgbKinect2.setFromPixels(kinectPlayer2.getPixels(), w, h);
+        
+        //mirror horizontal
+		rgbKinect2.mirror(false, true);
+        
+        //duplicate rgb
+		hsbKinect2 = rgbKinect2;
+        
+        //convert to hsb
+		hsbKinect2.convertRgbToHsv();
+        
+        //store the three channels as grayscale images
+		hsbKinect2.convertToGrayscalePlanarImages(hueKinect2, satKinect2, briKinect2);
+
+
+		
+		
+
+        //filter image based on the hue value were looking for
+        for (int i=0; i<w*h; i++) {
+			filteredKinect2.getPixels()[i] = ofInRange(hueKinect2.getPixels()[i],findHue-5,findHue+5) ? 255 : 0;
+        }
+
+
+		filteredKinect2.flagImageChanged();
+        //run the contour finder on the filtered image to find blobs with a certain hue
+		contoursKinect2.findContours(filteredKinect2, 200, w*h/2, 1, false, true);
     }
 }
 
@@ -82,47 +108,41 @@ void testApp::draw(){
     
     //draw all cv images
 	
-    rgb.draw(0,0);
-    /*
-	hsb.draw(640,0);
-    hue.draw(0,240);
-    sat.draw(320,240);
-    bri.draw(640,240);
-	*/
-    filtered.draw(0,h);
-    contours.draw(0,0);
+	rgbKinect1.draw(0,0);
 
-	/*
-	red.draw(0,0);
-	green.draw(w, 0);
-	blue.draw(0, h);
-	*/
-    
+	filteredKinect1.draw(0,h);
+	contoursKinect1.draw(0,0);
+
+	rgbKinect2.draw(w,0);
+	filteredKinect2.draw(w, h);
+
+	contoursKinect2.draw(w, 0);
+
     ofSetColor(255, 0, 0);
     ofFill();
     
     //draw red circles for found blobs
-    for (int i=0; i<contours.nBlobs; i++) {
-        ofCircle(contours.blobs[i].centroid.x, contours.blobs[i].centroid.y, 20);
+	for (int i=0; i<contoursKinect1.nBlobs; i++) {
+		ofCircle(contoursKinect1.blobs[i].centroid.x, contoursKinect1.blobs[i].centroid.y, 20);
+    } 
+	    //draw red circles for found blobs
+	for (int i=0; i<contoursKinect2.nBlobs; i++) {
+		ofCircle(contoursKinect2.blobs[i].centroid.x, contoursKinect2.blobs[i].centroid.y, 20);
     }    
+
 }
 
 //--------------------------------------------------------------
 void testApp::mousePressed(int x, int y, int button) {
-    
+    /*
     //calculate local mouse x,y in image
     int mx = x % w;
     int my = y % h;
     
     //get hue value on mouse position
-    findHue = hue.getPixels()[my*w+mx];
-
-	findSat = sat.getPixels()[my*w+mx];
-
-	findBri = bri.getPixels()[my*w+mx];
-
-	findRed = red.getPixels()[my*w+mx];
-	findBlue = blue.getPixels()[my*w+mx];
-	findGreen = green.getPixels()[my*w+mx];
+	findHue = hueKinect1.getPixels()[my*w+mx];
+	findSat = satKinect1.getPixels()[my*w+mx];
+	findBri = briKinect1.getPixels()[my*w+mx];
+	*/
 	
 }

@@ -7,6 +7,8 @@
 
 #include <vector>
 
+#define USE_TWO_KINECTS
+
 class testApp : public ofBaseApp{
 public:
     void setup();
@@ -15,19 +17,29 @@ public:
 
     void mousePressed(int x, int y, int button);
 
-	ofxKinect kinect[2];
+	ofxKinect kinectPlayer1;
+	ofxKinect kinectPlayer2;
     
-    ofxCvColorImage rgb, hsb;
-    ofxCvGrayscaleImage hue,sat,bri,filtered;
-	ofxCvColorImage red, green, blue;
-    ofxCvContourFinder contours;
+    ofxCvColorImage rgbKinect1, hsbKinect1;
+    ofxCvGrayscaleImage hueKinect1,satKinect1,briKinect1,filteredKinect1;
+
+    ofxCvContourFinder contoursKinect1;
+
+	ofxKinect kinectPlayer1;
+	ofxKinect kinectPlayer2;
+    
+    ofxCvColorImage rgbKinect2, hsbKinect2;
+    ofxCvGrayscaleImage hueKinect2,satKinect2,briKinect2,filteredKinect2;
+
+    ofxCvContourFinder contoursKinect2;
+
+
     
     int w,h;
     int findHue;
 	int findSat;
 	int findBri;
 
-	int findRed, findBlue, findGreen;
 };
 
 #endif

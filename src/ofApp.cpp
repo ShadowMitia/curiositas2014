@@ -303,6 +303,9 @@ void testApp::draw(){
 				}
 			}
 		}
+
+		ofMesh t = racketMeshKinect1.axis();
+		t.draw();
 		// draw the points
 
 		if (drawDebug) {

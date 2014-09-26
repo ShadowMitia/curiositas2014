@@ -7,9 +7,7 @@
 #include "ofxBullet.h"
 #include "ofxAssimpModelLoader.h"
 #include "ofxFluid.h"
-#define kNumCameras 2
 
-#define USE_TWO_KINECTS
 
 class testApp : public ofBaseApp{
 public:
@@ -27,6 +25,9 @@ public:
 
 	ofxKinect kinectPlayer1;
 	ofxKinect kinectPlayer2;
+
+	ofMesh racketMeshKinect1;
+	ofMesh racketMeshKinect2;
     
     ofxCvColorImage rgbKinect2, hsbKinect2;
     ofxCvGrayscaleImage hueKinect2,satKinect2,briKinect2,filteredKinect2;
@@ -34,6 +35,10 @@ public:
     ofxCvContourFinder contoursKinect2;
 
 	void kinectProcess(ofxKinect &kinect);
+
+	bool showVideoFeed;
+
+
 
     
     int w,h;
@@ -44,20 +49,24 @@ public:
 	////////////////////////////////////////////
 
 	// Cam
-    ofCamera    cam[kNumCameras];
-    int         NumCamera;
+	ofCamera    cam[2];
+
+    int         numberCamera;
 
     
     //Physique
     ofVec3f                             gravity;
     ofxBulletWorldRigid                 world;
 	ofxBulletBox                        ground;
-    
-    ofxBulletSphere*                    sphere;
-    ofxAssimpModelLoader                assimpModel;
-    vector <ofxBulletCustomShape*>      Racket;
-    ofMaterial                          matRacket;
-    
+
+	ofxBulletBox						areaWalls[2];
+
+
+	bool								drawDebug;
+
+
+
+    ofxBulletSphere*                    sphere; // the ball
     
     //Light
     ofLight                             light;
@@ -67,7 +76,7 @@ public:
     
     float                               x,y,z;
     int                                 debugMouv;
-    float                               width,height;
+    float                               width, height; // width and height of ground (aka game area)
     bool                                actFluid;
 	int                                 m,s;
 	

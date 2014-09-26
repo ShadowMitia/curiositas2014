@@ -29,7 +29,7 @@ void testApp::setup() {
 	briKinect1.allocate(w, h);
 	filteredKinect1.allocate(w, h);
 
-	    //reserve memory for cv images
+	//reserve memory for cv images
 	rgbKinect2.allocate(w, h);
 	hsbKinect2.allocate(w, h);
 	hueKinect2.allocate(w, h);
@@ -42,7 +42,7 @@ void testApp::setup() {
 	/////////////////////////////////////////
 	/////////////////////////////////////////
 
-	NumCamera=0;
+	numberCamera=0;
     x=y=z=0;
     width=1024;
     height=768;
@@ -55,7 +55,9 @@ void testApp::setup() {
     light.enable();
     light.setDiffuseColor(ofFloatColor(255,255,255));
     */
-    //Camera principal
+
+
+    //Main camera 
     cam[0].setFov(fov);
     fov=((fov/2)*PI)/180;
 	cam[0].setFarClip((height/2)/tan(fov)+100);
@@ -69,17 +71,30 @@ void testApp::setup() {
 	cam[1].setPosition(ofVec3f(18400, 4000, 0));
     cam[1].lookAt(ofVec3f(-1, 1, -1), ofVec3f(0, -1, 0));
     cam[1].setFov(4);
-    
+
+
+	// set up bullet
     world.setup();
 	world.enableGrabbing();
 	world.enableDebugDraw();
-    world.setCamera(&cam[0]);
+    world.setCamera(&cam[0]); //world is seen through main camera
     
+
+	// change gravity (mouahahaha)
     gravity=ofVec3f(0,100,0);
-    
-    ground.create( world.world, ofVec3f(0., 0, 0.), 0., height, -1.f, width );
+	world.setGravity(gravity);
+
+	// create the ground
+    ground.create( world.world, ofVec3f(0., 0., 0.), 0., height, -1.f, width );
 	ground.setProperties(.25, .95);
 	ground.add();
+
+	areaWalls[0].create( world.world, ofVec3f(0. , 0., 0.), 2000, 5, width / 2);
+	areaWalls[0].add();
+
+	areaWalls[1].create( world.world, ofVec3f(0. , 0., 0.), 2000, 5, -width / 2);
+	areaWalls[1].add();
+
     // sphere
     sphere = new ofxBulletSphere();
 	sphere->create(world.world, ofVec3f(100, -1000, 0), 1000, 30);
@@ -93,6 +108,10 @@ void testApp::setup() {
     
     
 
+
+	drawDebug = false;
+
+	showVideoFeed = false;
 
 
 }
@@ -152,20 +171,20 @@ void testApp::update(){
         
 			//store the three channels as grayscale images
 			hsbKinect1.convertToGrayscalePlanarImages(hueKinect1, satKinect1, briKinect1);
-
-
 		
-		
-
 			//filter image based on the hue value were looking for
 			for (int i=0; i<w*h; i++) {
 				filteredKinect1.getPixels()[i] = ofInRange(hueKinect1.getPixels()[i],findHue-5,findHue+5) ? 255 : 0;
 			}
 
-
 			filteredKinect1.flagImageChanged();
 			//run the contour finder on the filtered image to find blobs with a certain hue
 			contoursKinect1.findContours(filteredKinect1, 200, w*h/2, 1, false, true);
+
+
+			/// ROI
+			int extraSpace = 10;
+			//filteredKinect1.setROI(contoursKinect1.blobs[0].centroid.x, contoursKinect1.blobs[0].centroid.y, contoursKinect1.blobs[0].boundingRect.width + extraSpace, contoursKinect1.blobs[0].boundingRect.height + extraSpace);
 		}
 	} else {
 		ofSetColor(255, 0, 0);
@@ -193,15 +212,10 @@ void testApp::update(){
 			//store the three channels as grayscale images
 			hsbKinect2.convertToGrayscalePlanarImages(hueKinect2, satKinect2, briKinect2);
 
-
-		
-		
-
 			//filter image based on the hue value were looking for
 			for (int i=0; i<w*h; i++) {
 				filteredKinect2.getPixels()[i] = ofInRange(hueKinect2.getPixels()[i],findHue-5,findHue+5) ? 255 : 0;
 			}
-
 
 			filteredKinect2.flagImageChanged();
 			//run the contour finder on the filtered image to find blobs with a certain hue
@@ -220,13 +234,16 @@ void testApp::update(){
 void testApp::draw(){
     ofSetColor(255,255,255);
 
+	if (drawDebug) {
+		world.drawDebug();
+	}
 
-	  //Camera
+	//Camera
     
     world.setGravity(gravity);
     
     //light.setOrientation(ofVec3f(x,y,z));
-    cam[NumCamera].begin();
+    cam[numberCamera].begin();
     
     ofSetColor(0, 0, 0, 255);
 	ground.draw();
@@ -234,20 +251,20 @@ void testApp::draw(){
     ofSetColor(225, 0, 225);
 	sphere->draw();
     /*
-    if (NumCamera==1) {
-        cam[NumCamera].setNearClip(near);
-        cam[NumCamera].setFov(fov);
-        cam[NumCamera].setFarClip(far);
-        cam[NumCamera].setVFlip(flip);
-        cam[NumCamera].setPosition(6400,y,0);
+    if (numberCamera==1) {
+        cam[numberCamera].setNearClip(near);
+        cam[numberCamera].setFov(fov);
+        cam[numberCamera].setFarClip(far);
+        cam[numberCamera].setVFlip(flip);
+        cam[numberCamera].setPosition(6400,y,0);
         
     }
     */
     
     
-    cam[NumCamera].end();
+    cam[numberCamera].end();
     
-      if(NumCamera==0){
+      if(numberCamera==0){
        fluid.draw(); 
     }
     
@@ -255,23 +272,60 @@ void testApp::draw(){
 	ss << endl <<cam[0].getY()<<endl;
     ofSetColor(255, 0, 0);
 	ofDrawBitmapString(ss.str().c_str(), 10, 10);
-   
-
+  
 	//////////////////////////////////////////////////////
     
     //draw all cv images
 
 	if (kinectPlayer1.isConnected()){
-		rgbKinect1.draw(0,0);
-		filteredKinect1.draw(0,h);
-		contoursKinect1.draw(0,0);
+
+		if (showVideoFeed) {
+			rgbKinect1.draw(0,0);
+			filteredKinect1.draw(0,h);
+			contoursKinect1.draw(0,0);
+		}
+		
+		racketMeshKinect1.clear();
+
+		int step = 1;
+		racketMeshKinect1.setMode(OF_PRIMITIVE_POINTS);
+		for(int y = 0; y < h; y += step) {
+
+			for(int x = 0; x < w; x += step) {
+				if(kinectPlayer1.getDistanceAt(x, y) > 0) {
+
+					// try and add an ROI operation here
+
+
+					if ( filteredKinect1.getPixels()[x*w+y] == 255) {
+						racketMeshKinect1.addVertex(kinectPlayer1.getWorldCoordinateAt(x, y));
+					}
+				}
+			}
+		}
+		// draw the points
+
+		if (drawDebug) {
+			glPointSize(3);
+			ofPushMatrix();
+
+			ofScale(1, 1, 1);
+			ofTranslate(0, 0, -1000); // center the points a bit
+			ofEnableDepthTest();
+			racketMeshKinect1.drawVertices();
+			ofDisableDepthTest();
+			ofPopMatrix();
+		}
+
 	}
 	
 
 	if (kinectPlayer2.isConnected() ){
+		if (showVideoFeed) {
 		rgbKinect2.draw(w,0);
 		filteredKinect2.draw(w, h);
 		contoursKinect2.draw(w, 0);
+		}
 	}
 
 
@@ -301,20 +355,19 @@ void testApp::mousePressed(int x, int y, int button) {
 	findSat = satKinect1.getPixels()[my*w+mx];
 	findBri = briKinect1.getPixels()[my*w+mx];
 	
-	
 }
 
 void testApp::keyPressed(int key) {
 	switch (key) {
 	case '1':
-		cout << "Tring to load Kinect 1" << endl;
+		cout << "Trying to load Kinect 1" << endl;
 		kinectPlayer1.setRegistration(true);
 		kinectPlayer1.init();
 		kinectPlayer1.open();
 		break;
 
 	case '2':
-		cout << "Tring to load Kinect 2" << endl;
+		cout << "Trying to load Kinect 2" << endl;
 		kinectPlayer2.setRegistration(true);
 		kinectPlayer2.init();
 		kinectPlayer2.open();
@@ -330,23 +383,34 @@ void testApp::keyPressed(int key) {
 		kinectPlayer2.setCameraTiltAngle(0);
 		kinectPlayer2.close();
 		break;
-	
 
+	case 'v':
+		showVideoFeed = ! showVideoFeed;
+	break;
+	
+	
 	////////////////////////////////////////////////////
 
 	// Camera 0,1
     case 'a':
-        NumCamera=0;
+        numberCamera=0;
         break;
         
     case 'z':
-        NumCamera=1;
+        numberCamera=1;
         break;
+
+
             
     case 'e':
-            actFluid=!actFluid;
-            
+            actFluid= ! actFluid;   
 		 break;
+
+	case 'd':
+		//debug stuff
+		drawDebug = ! drawDebug;
+		break;
 
 	}
 }
+

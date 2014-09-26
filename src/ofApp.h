@@ -16,9 +16,7 @@ public:
     void draw();
 
     void mousePressed(int x, int y, int button);
-
-	ofxKinect kinectPlayer1;
-	ofxKinect kinectPlayer2;
+	void keyPressed(int key);
     
     ofxCvColorImage rgbKinect1, hsbKinect1;
     ofxCvGrayscaleImage hueKinect1,satKinect1,briKinect1,filteredKinect1;
@@ -33,6 +31,7 @@ public:
 
     ofxCvContourFinder contoursKinect2;
 
+	void kinectProcess(ofxKinect &kinect);
 
     
     int w,h;

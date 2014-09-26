@@ -4,8 +4,10 @@
 #include "ofMain.h"
 #include "ofxOpenCv.h"
 #include "ofxKinect.h"
-
-#include <vector>
+#include "ofxBullet.h"
+#include "ofxAssimpModelLoader.h"
+#include "ofxFluid.h"
+#define kNumCameras 2
 
 #define USE_TWO_KINECTS
 
@@ -38,6 +40,43 @@ public:
     int findHue;
 	int findSat;
 	int findBri;
+
+	////////////////////////////////////////////
+
+	// Cam
+    ofCamera    cam[kNumCameras];
+    int         NumCamera;
+
+    
+    //Physique
+    ofVec3f                             gravity;
+    ofxBulletWorldRigid                 world;
+	ofxBulletBox                        ground;
+    
+    ofxBulletSphere*                    sphere;
+    ofxAssimpModelLoader                assimpModel;
+    vector <ofxBulletCustomShape*>      Racket;
+    ofMaterial                          matRacket;
+    
+    
+    //Light
+    ofLight                             light;
+    
+    
+    //Debug
+    
+    float                               x,y,z;
+    int                                 debugMouv;
+    float                               width,height;
+    bool                                actFluid;
+	int                                 m,s;
+	
+    ofSpherePrimitive                   debugSphere;
+    
+    //fluid
+    ofxFluid                   fluid;
+
+    
 
 };
 

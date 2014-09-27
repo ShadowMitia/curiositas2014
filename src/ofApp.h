@@ -5,8 +5,9 @@
 #include "ofxOpenCv.h"
 #include "ofxKinect.h"
 #include "ofxBullet.h"
-#include "ofxAssimpModelLoader.h"
 #include "ofxFluid.h"
+
+#include <cmath>
 
 
 class testApp : public ofBaseApp{
@@ -38,8 +39,6 @@ public:
 
 	bool showVideoFeed;
 
-
-
     
     int w,h;
     int findHue;
@@ -67,6 +66,27 @@ public:
 
 
     ofxBulletSphere*                    sphere; // the ball
+	ofxBulletCylinder*                  racketPlayer1; // the racket for player 1
+	ofxBulletCylinder*                  racketPlayer2; // the racket for player 2
+
+	bool racketPlayer1goesLeft;
+	bool racketPlayer1goesUp;
+	bool racketPlayer1goesForward;
+
+	int oldCentroidX;
+	int oldCentroidY;
+	int oldCentroidZ;
+
+	int centroidX;
+	int centroidY;
+	int centroidZ;
+
+
+	int xMov;
+	int yMov;
+	int zMov;
+
+
     
     //Light
     ofLight                             light;

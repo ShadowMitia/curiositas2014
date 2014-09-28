@@ -209,7 +209,7 @@ void testApp::update(){
 		
 			//filter image based on the hue value were looking for
 			for (int i=0; i<w*h; i++) {
-				filteredKinect1.getPixels()[i] = ofInRange(hueKinect1.getPixels()[i],findHue-5,findHue+5) ? 255 : 0;
+				filteredKinect1.getPixels()[i] = ofInRange(hueKinect1.getPixels()[i],findHue-10,findHue+10) ? 255 : 0;
 			}
 
 			filteredKinect1.flagImageChanged();
@@ -221,39 +221,8 @@ void testApp::update(){
 			int extraSpace = 10;
 			//filteredKinect1.setROI(contoursKinect1.blobs[0].centroid.x, contoursKinect1.blobs[0].centroid.y, contoursKinect1.blobs[0].boundingRect.width + extraSpace, contoursKinect1.blobs[0].boundingRect.height + extraSpace);
 		}
-	}
 
-
-
-    
-	
-	////// END KINECT + OPENCV
-
-	/*
-	if (oldCentroidX < contoursKinect1.blobs[0].centroid.x){
-		racketPlayer1goesLeft = false;
-	} else {
-		racketPlayer1goesLeft = true;
-	}
-
-	if (oldCentroidY < contoursKinect1.blobs[0].centroid.y){
-		racketPlayer1goesUp = false;
-	} else {
-		racketPlayer1goesUp = true;
-	}
-
-	if (oldCentroidZ < contoursKinect1.blobs[0].centroid.z) {
-		racketPlayer1goesForward = true;
-	} else {
-		racketPlayer1goesForward = false;
-	}
-	*/
-
-
-	if (kinectPlayer1.isConnected() && kinectPlayer1.isFrameNew() ) {
-
-
-
+		
 		//move kinematic objects http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?p=&f=9&t=2355
 		//rotate kinematic objects http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=6282
 
@@ -269,6 +238,41 @@ void testApp::update(){
 			centroidX = contoursKinect1.blobs[0].centroid.x;
 			centroidY = contoursKinect1.blobs[0].centroid.y;
 			centroidZ = kinectPlayer1.getDistanceAt(centroidX, centroidY) + (height / 2);
+
+			float ww = contoursKinect1.blobs[0].boundingRect.width / 4;
+			float hh = contoursKinect1.blobs[0].boundingRect.height / 4;
+			/*
+			top = kinectPlayer1.getWorldCoordinateAt(centroidX, centroidY + hh);
+			left = kinectPlayer1.getWorldCoordinateAt(centroidX+ww, centroidY);
+			right = kinectPlayer1.getWorldCoordinateAt(centroidX-ww, centroidY);
+			bottom = kinectPlayer1.getWorldCoordinateAt(centroidX, centroidY - hh);
+
+			racket1Angle = (90 / 75 ) * (left.z - right.z) ;
+
+			*/
+
+			racket1Mesh.clear();
+			racket1Mesh.setMode(OF_PRIMITIVE_POINTS);
+			/*
+			int step = 2;
+			for (int y = 0; y < h; y += step){
+				for (int x = 0; x < w; x += step){
+					if (kinectPlayer1.getDistanceAt(x, y) > 0 && filteredKinect1.getPixels()[y*w+x]){
+						racket1Mesh.addVertex(kinectPlayer1.getWorldCoordinateAt(x, y));
+					}
+				}
+			}
+			*/
+
+			racket1Mesh.addVertex(kinectPlayer1.getWorldCoordinateAt(centroidX, centroidY + hh)); //top
+			racket1Mesh.addVertex(kinectPlayer1.getWorldCoordinateAt(centroidX+ww, centroidY)); // left
+			racket1Mesh.addVertex(kinectPlayer1.getWorldCoordinateAt(centroidX-ww, centroidY)); // bottom
+			racket1Mesh.addVertex(kinectPlayer1.getWorldCoordinateAt(centroidX, centroidY - hh)); // right
+
+			vertices = racket1Mesh.getVertices();
+
+			racket1Angle = (90 / 75 ) * (vertices[1].z - vertices[3].z) ;
+
 
 			/*
 			btTransform coord;
@@ -294,6 +298,7 @@ void testApp::update(){
 
 			racketPlayer1->activate();
 		}
+
 	}
 
 	
@@ -309,7 +314,22 @@ void testApp::draw(){
 		if (showVideoFeed) {
 			rgbKinect1.draw(0,0);
 			filteredKinect1.draw(0,h);
-			contoursKinect1.draw(0,0);
+			contoursKinect1.draw(0,h);
+			/*
+			ofSetColor(255, 0, 0);
+			ofCircle(centroidX, centroidY, 5);
+			
+			ofSetColor(255, 0, 255);
+
+			ofCircle(top, 2);
+			ofCircle(left, 2);
+			ofCircle(bottom, 2);
+			ofCircle(right, 2);
+			
+			ofLine(top, bottom);
+			ofLine(left, right);
+			*/
+			
 		}
 		
 
@@ -330,6 +350,8 @@ void testApp::draw(){
 
     ofSetColor(255, 0, 0);
     ofFill();
+
+	/*
     
     //draw red circles for found blobs
 	for (int i=0; i<contoursKinect1.nBlobs; i++) {
@@ -340,6 +362,7 @@ void testApp::draw(){
 		ofCircle(contoursKinect2.blobs[i].centroid.x, contoursKinect2.blobs[i].centroid.y, 20);
     }   
 
+	*/
 
     ofSetColor(255,255,255);
 
@@ -353,6 +376,11 @@ void testApp::draw(){
     
     //light.setOrientation(ofVec3f(x,y,z));
     cam[numberCamera].begin();
+
+
+
+
+
     
     ofSetColor(0, 100, 0, 255);
 	ground.draw();
@@ -368,7 +396,19 @@ void testApp::draw(){
 
 	//racketPlayer2->draw();
 
-    
+	ofSetColor(255, 255, 255);
+
+    glPointSize(3);
+	ofPushMatrix();
+	// the projected points are 'upside down' and 'backwards' 
+	ofScale(1, -1, -1);
+	ofTranslate(0, 0, -1000); // center the points a bit
+	ofEnableDepthTest();
+	racket1Mesh.drawVertices();
+	ofDisableDepthTest();
+	ofPopMatrix();
+
+
     
     cam[numberCamera].end();
     /*
@@ -384,10 +424,17 @@ void testApp::draw(){
 
 	stringstream ss;
     ss << endl;
+	ss << "w :" << w << "h: " << h << endl;
 	ss << "framerate " << ofToString(ofGetFrameRate(), 0) << endl;
 	ss << "racket 1: " << racketPlayer1->getPosition() <<endl;
 	ss << "sphere: " << sphere->getPosition() << endl;
+	ss << endl;
+
 	if (kinectPlayer1.isConnected() && contoursKinect1.nBlobs > 0) {
+		ss << "top: " << vertices[0] << endl;
+		ss << "bottom: " << vertices[2] << endl;
+		ss << "angle " << racket1Angle << endl;
+		ss << endl;
 		ss << endl << "centroid: " << contoursKinect1.blobs[0].centroid.x << " " << contoursKinect1.blobs[0].centroid.y << " " << centroidZ << " " << endl;
 		ss << endl << "old " << oldCentroidX << " " << oldCentroidY << " " << oldCentroidZ << endl;
 	}

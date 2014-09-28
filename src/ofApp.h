@@ -8,6 +8,7 @@
 #include "ofxFluid.h"
 
 #include <cmath>
+#include <vector>
 
 
 class testApp : public ofBaseApp{
@@ -39,6 +40,14 @@ public:
 
 	bool showVideoFeed;
 
+	ofPoint top, left, bottom, right;
+
+	ofMesh racket1Mesh;
+
+	float racket1Angle;
+
+	vector < ofVec3f > vertices;
+
     
     int w,h;
     int findHue;
@@ -48,7 +57,7 @@ public:
 	////////////////////////////////////////////
 
 	// Cam
-	ofCamera    cam[2];
+	ofEasyCam    cam[2];
 
     int         numberCamera;
 

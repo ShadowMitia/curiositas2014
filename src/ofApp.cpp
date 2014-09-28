@@ -11,11 +11,8 @@ void testApp::setup() {
 
     
     //reserve memory for cv images
-	rgbKinect1.allocate(w, h);
 	hsbKinect1.allocate(w, h);
 	hueKinect1.allocate(w, h);
-	satKinect1.allocate(w, h);
-	briKinect1.allocate(w, h);
 	filteredKinect1.allocate(w, h);
 
 	//reserve memory for cv images
@@ -23,6 +20,7 @@ void testApp::setup() {
 	hsbKinect2.allocate(w, h);
 	hueKinect2.allocate(w, h);
 	satKinect2.allocate(w, h);
+
 	briKinect2.allocate(w, h);
 	filteredKinect2.allocate(w, h);
 
@@ -149,6 +147,8 @@ void testApp::setup() {
 	yMov = 0;
 	zMov = 0;
 
+
+
 }
 
 //--------------------------------------------------------------
@@ -193,24 +193,18 @@ void testApp::update(){
 		if (kinectPlayer1.isFrameNew()) {
         
 			//copy webcam pixels to rgb image
-			rgbKinect1.setFromPixels(kinectPlayer1.getPixels(), w, h);
-        
-			//mirror horizontal
-			rgbKinect1.mirror(false, true);
-        
-			//duplicate rgb
-			hsbKinect1 = rgbKinect1;
-        
+			hsbKinect1.setFromPixels(kinectPlayer1.getPixels(), w, h);
+
 			//convert to hsb
 			hsbKinect1.convertRgbToHsv();
-        
-			//store the three channels as grayscale images
-			hsbKinect1.convertToGrayscalePlanarImages(hueKinect1, satKinect1, briKinect1);
-		
-			//filter image based on the hue value were looking for
-			for (int i=0; i<w*h; i++) {
+			hsbKinect1.convertToGrayscalePlanarImage(hueKinect1, 0);
+
+			for (int i = 0; i < w * h; i++) {
 				filteredKinect1.getPixels()[i] = ofInRange(hueKinect1.getPixels()[i],findHue-10,findHue+10) ? 255 : 0;
 			}
+
+			//filteredKinect1.setFromPixels(filteredKinect1.getRoiPixels(), roiRect.width, roiRect.height);
+
 
 			filteredKinect1.flagImageChanged();
 			//run the contour finder on the filtered image to find blobs with a certain hue
@@ -219,7 +213,12 @@ void testApp::update(){
 
 			/// ROI
 			int extraSpace = 10;
-			//filteredKinect1.setROI(contoursKinect1.blobs[0].centroid.x, contoursKinect1.blobs[0].centroid.y, contoursKinect1.blobs[0].boundingRect.width + extraSpace, contoursKinect1.blobs[0].boundingRect.height + extraSpace);
+			/*
+			if (contoursKinect1.nBlobs > 0) {
+				hsbKinect1.setROI(contoursKinect1.blobs[0].centroid.x, contoursKinect1.blobs[0].centroid.y, contoursKinect1.blobs[0].boundingRect.width + extraSpace, contoursKinect1.blobs[0].boundingRect.height + extraSpace);
+				roiRect = hsbKinect1.getROI();
+			}
+			*/
 		}
 
 		
@@ -253,16 +252,6 @@ void testApp::update(){
 
 			racket1Mesh.clear();
 			racket1Mesh.setMode(OF_PRIMITIVE_POINTS);
-			/*
-			int step = 2;
-			for (int y = 0; y < h; y += step){
-				for (int x = 0; x < w; x += step){
-					if (kinectPlayer1.getDistanceAt(x, y) > 0 && filteredKinect1.getPixels()[y*w+x]){
-						racket1Mesh.addVertex(kinectPlayer1.getWorldCoordinateAt(x, y));
-					}
-				}
-			}
-			*/
 
 			racket1Mesh.addVertex(kinectPlayer1.getWorldCoordinateAt(centroidX, centroidY + hh)); //top
 			racket1Mesh.addVertex(kinectPlayer1.getWorldCoordinateAt(centroidX+ww, centroidY)); // left
@@ -312,9 +301,8 @@ void testApp::draw(){
 	if (kinectPlayer1.isConnected()){
 
 		if (showVideoFeed) {
-			rgbKinect1.draw(0,0);
-			filteredKinect1.draw(0,h);
-			contoursKinect1.draw(0,h);
+			filteredKinect1.draw(0,0);
+			contoursKinect1.draw(0,0);
 			/*
 			ofSetColor(255, 0, 0);
 			ofCircle(centroidX, centroidY, 5);
@@ -345,8 +333,6 @@ void testApp::draw(){
 		contoursKinect2.draw(w, 0);
 		}
 	}
-
-
 
     ofSetColor(255, 0, 0);
     ofFill();
@@ -465,6 +451,10 @@ void testApp::keyPressed(int key) {
 		kinectPlayer1.setRegistration(true);
 		kinectPlayer1.init();
 		kinectPlayer1.open();
+		roiRect.x = 0;
+		roiRect.y = 0;
+		roiRect.width = w;
+		roiRect.height = h;
 		break;
 
 	case '2':

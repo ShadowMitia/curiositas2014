@@ -47,7 +47,7 @@ public:
 	float racket1Angle;
 
 	vector < ofVec3f > vertices;
-
+	ofRectangle roiRect;
     
     int w,h;
     int findHue;

@@ -114,7 +114,7 @@ public:
     //fluid
     ofxFluid                   fluid;
 
-    
+	void onCollision(ofxBulletCollisionData& cdata);
 
 };
 

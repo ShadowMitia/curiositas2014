@@ -62,14 +62,14 @@ void testApp::setup() {
     cam[1].lookAt(ofVec3f(-1, 1, -1), ofVec3f(0, -1, 0));
     cam[1].setFov(4);
 
-
 	// set up bullet
     world.setup();
 	world.enableGrabbing();
 	world.enableDebugDraw();
     world.setCamera(&cam[0]); //world is seen through main camera
     
-
+	world.enableCollisionEvents();
+	ofAddListener(world.COLLISION_EVENT, this, &testApp::onCollision);
 	// change gravity (mouahahaha)
     gravity=ofVec3f(0,100,0);
 	world.setGravity(gravity);
@@ -90,7 +90,8 @@ void testApp::setup() {
 
     // sphere
     sphere = new ofxBulletSphere();
-	sphere->create(world.world, ofVec3f(0, -500, 0), 1000, 30);
+	sphere->create(world.world, ofVec3f(0, -500, 0), 5, 30);
+	sphere->setProperties(10, 1.5);
 	sphere->add();
 
 
@@ -116,7 +117,7 @@ void testApp::setup() {
 	btQuaternion rotation = coord.getRotation();
 
 	btVector3 offset = coord.getOrigin();
-	rotation.setRotation( rotation.getAxis(), PI / 2);
+	rotation.setRotation( rotation.getAxis(), PI / 4);
 	coord.setOrigin(btVector3(0., 0., 0.));
 	coord.setRotation(rotation);
 	coord.setOrigin(offset);
@@ -409,6 +410,10 @@ void testApp::draw(){
 
 
 	stringstream ss;
+	btVector3 vec = sphere->getRigidBody()->getLinearVelocity();
+	
+
+	ss << "ball: velocity (x,y,z): " << vec.getX() << " " << vec.getY() << " " << vec.getZ() << endl;
     ss << endl;
 	ss << "w :" << w << "h: " << h << endl;
 	ss << "framerate " << ofToString(ofGetFrameRate(), 0) << endl;
@@ -432,7 +437,7 @@ void testApp::draw(){
 
 //--------------------------------------------------------------
 void testApp::mousePressed(int x, int y, int button) {
-    
+    /*
     //calculate local mouse x,y in image
     int mx = x % w;
     int my = y % h;
@@ -441,6 +446,7 @@ void testApp::mousePressed(int x, int y, int button) {
 	findHue = hueKinect1.getPixels()[my*w+mx];
 	findSat = satKinect1.getPixels()[my*w+mx];
 	findBri = briKinect1.getPixels()[my*w+mx];
+	*/
 	
 }
 
@@ -519,6 +525,20 @@ void testApp::keyPressed(int key) {
 		racketPlayer1goesUp = false;
 		yMov -= 10;
 		break;
+	}
+}
+
+void testApp::onCollision(ofxBulletCollisionData& cdata){
+	if (*sphere == cdata){
+		cout << "sphere collision" << endl;
+	}
+
+	if (*racketPlayer1 == cdata){
+		cout << "racket 1 collision" << endl;
+	}
+
+	if (*racketPlayer2 == cdata){
+		cout << "racket 2 collision" << endl;
 	}
 }
 

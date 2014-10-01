@@ -56,6 +56,7 @@ void testApp::setup() {
     
 	world.enableCollisionEvents();
 	ofAddListener(world.COLLISION_EVENT, this, &testApp::onCollision);
+
 	// change gravity (mouahahaha)
     gravity=ofVec3f(0,100,0);
 	world.setGravity(gravity);
@@ -76,7 +77,7 @@ void testApp::setup() {
 
     // sphere
     sphere = new ofxBulletSphere();
-	sphere->create(world.world, ofVec3f(0, -1000, 0), 5, 30);
+	sphere->create(world.world, ofVec3f(0, -1000, 0), 5000, 30);
 	sphere->setProperties(10, 1.5);
 	sphere->add();
 
@@ -119,7 +120,12 @@ void testApp::setup() {
     fluid.velocityDissipation = 0.99;
     fluid.setGravity(ofPoint(0,0));
 
+	UP = 0.0;
+	FORWARD = 0.0;
+	LEFT = 0.0;
 
+	oldPositionKinect1 = ofVec3f(0, 0, 0);
+	oldPositionKinect2 = ofVec3f(0, 0, 0);
 }
 
 
@@ -181,17 +187,19 @@ void testApp::update(){
 	int zModulo = (int)(height / 2);
 
 	racketPlayer1->getRigidBody()->getMotionState()->getWorldTransform(newCoordinate);
-	newCoordinate.getOrigin() += btVector3(  0,  0, (int)(centroidZ - oldCentroidZ) % zModulo);
+	newCoordinate.getOrigin() += btVector3(  oldPositionKinect1.x - positionKinect1.x ,  oldPositionKinect2.y - positionKinect2.y , 0);
 	racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform(newCoordinate);
 
 	racketPlayer1->activate();
-
 
 
 	while (receiver.hasWaitingMessages()) {
 		ofxOscMessage message;
 
 		receiver.getNextMessage(&message);
+
+		positionKinect1 = ofVec3f(0, 0, 0);
+		positionKinect2 = ofVec3f(0, 0, 0);
 
 
 		 if (message.getAddress() == "/kinect1/position") {
@@ -207,6 +215,9 @@ void testApp::update(){
 			positionKinect2.z = message.getArgAsFloat(2);
 			cout <<"kinect 2 pos: " << positionKinect2 << endl;
 		}
+
+		oldPositionKinect1.set(positionKinect1);
+		oldPositionKinect2.set(positionKinect2);
 
 		 
 	}
@@ -266,8 +277,6 @@ void testApp::draw(){
        fluid.draw(); 
     }
     
-
-  
 	//////////////////////////////////////////////////////
 
 
@@ -284,10 +293,8 @@ void testApp::draw(){
 	ss << "sphere: " << sphere->getPosition() << endl;
 	ss << endl;
 
-	if (kinect1Connected) {
 		ss << endl << "centroid: " << positionKinect1 << endl;
-		ss << endl << "old " << oldCentroidX << " " << oldCentroidY << " " << oldCentroidZ << endl;
-	}
+		ss << endl << "old " << oldPositionKinect1 << endl;
 
     ofSetColor(255, 0, 0);
 	ofDrawBitmapString(ss.str().c_str(), 10, 10);
@@ -297,13 +304,29 @@ void testApp::draw(){
 void testApp::keyPressed(int key) {
 	switch (key) {
 
+	case OF_KEY_LEFT:
+		FORWARD -= 10;
+		break;
+
+	case OF_KEY_RIGHT:
+		FORWARD += 10;
+		break;
+
+	case OF_KEY_UP:
+		UP -= 10;
+		break;
+
+	case OF_KEY_DOWN:
+		UP += 10;
+		break;
+
 	// Camera 0
-    case 'a':
+    case OF_KEY_F1:
         numberCamera=0;
         break;
     
 	// Camera 1
-    case 'z':
+	case OF_KEY_F2:
         numberCamera=1;
         break;
     

@@ -27,6 +27,9 @@ public:
 	ofVec3f positionKinect1;
 	ofVec3f positionKinect2;
 
+	ofVec3f oldPositionKinect1;
+	ofVec3f oldPositionKinect2;
+
 	bool kinect1Connected;
 	bool kinect2Connected;
 
@@ -42,13 +45,6 @@ public:
 	int findSat;
 	int findBri;
 
-	float centroidX;
-	float centroidY;
-	float centroidZ;
-
-	float oldCentroidX;
-	float oldCentroidY;
-	float oldCentroidZ;
 
 	////////////////////////////////////////////
 
@@ -100,6 +96,14 @@ public:
 	// OSC stuff
 
 	ofxOscReceiver receiver;
+
+
+
+	// trucs pourris
+
+	float UP;
+	float FORWARD;
+	float LEFT;
 
 };
 

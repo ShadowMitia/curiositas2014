@@ -6,9 +6,13 @@
 #include "ofxKinect.h"
 #include "ofxBullet.h"
 #include "ofxFluid.h"
+#include "ofxOsc.h"
 
 #include <cmath>
 #include <vector>
+
+// listen on port 12345
+#define PORT 12345
 
 
 class testApp : public ofBaseApp{
@@ -17,57 +21,46 @@ public:
     void update();
     void draw();
 
-    void mousePressed(int x, int y, int button);
 	void keyPressed(int key);
     
-    ofxCvColorImage rgbKinect1, hsbKinect1;
-    ofxCvGrayscaleImage hueKinect1,satKinect1,briKinect1,filteredKinect1;
+	// kinect stuff
+	ofVec3f positionKinect1;
+	ofVec3f positionKinect2;
 
-    ofxCvContourFinder contoursKinect1;
+	bool kinect1Connected;
+	bool kinect2Connected;
 
-	ofxKinect kinectPlayer1;
-	ofxKinect kinectPlayer2;
-
-	ofMesh racketMeshKinect1;
-	ofMesh racketMeshKinect2;
-    
-    ofxCvColorImage rgbKinect2, hsbKinect2;
-    ofxCvGrayscaleImage hueKinect2,satKinect2,briKinect2,filteredKinect2;
-
-    ofxCvContourFinder contoursKinect2;
-
-	void kinectProcess(ofxKinect &kinect);
-
-	bool showVideoFeed;
 
 	ofPoint top, left, bottom, right;
 
-	ofMesh racket1Mesh;
-
 	float racket1Angle;
-
-	vector < ofVec3f > vertices;
-	ofRectangle roiRect;
     
-    int w,h;
+    int w,h; // width and height of kinects
+
+
     int findHue;
 	int findSat;
 	int findBri;
 
+	float centroidX;
+	float centroidY;
+	float centroidZ;
 
-	int resize;
+	float oldCentroidX;
+	float oldCentroidY;
+	float oldCentroidZ;
 
 	////////////////////////////////////////////
 
 	// Cam
 	ofEasyCam    cam[2];
 
-	ofEasyCam easyDebugCam;
+	ofEasyCam	 easyDebugCam;
 
-    int         numberCamera;
+    int			 numberCamera;
 
     
-    //Physique
+    //Bullet physics
     ofVec3f                             gravity;
     ofxBulletWorldRigid                 world;
 	ofxBulletBox                        ground;
@@ -82,25 +75,6 @@ public:
     ofxBulletSphere*                    sphere; // the ball
 	ofxBulletCylinder*                  racketPlayer1; // the racket for player 1
 	ofxBulletCylinder*                  racketPlayer2; // the racket for player 2
-
-	bool racketPlayer1goesLeft;
-	bool racketPlayer1goesUp;
-	bool racketPlayer1goesForward;
-
-	int oldCentroidX;
-	int oldCentroidY;
-	int oldCentroidZ;
-
-	int centroidX;
-	int centroidY;
-	int centroidZ;
-
-
-	int xMov;
-	int yMov;
-	int zMov;
-
-
     
     //Light
     ofLight                             light;
@@ -119,7 +93,13 @@ public:
     //fluid
     ofxFluid                   fluid;
 
+	// ofEvent stuff
+
 	void onCollision(ofxBulletCollisionData& cdata);
+
+	// OSC stuff
+
+	ofxOscReceiver receiver;
 
 };
 

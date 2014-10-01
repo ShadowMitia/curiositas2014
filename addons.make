@@ -1,5 +1,3 @@
-ofx3DModelLoader
-ofxAssimpModelLoader
 ofxKinect
 ofxOpenCv
 ofxOsc

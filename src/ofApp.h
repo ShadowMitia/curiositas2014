@@ -54,10 +54,15 @@ public:
 	int findSat;
 	int findBri;
 
+
+	int resize;
+
 	////////////////////////////////////////////
 
 	// Cam
 	ofEasyCam    cam[2];
+
+	ofEasyCam easyDebugCam;
 
     int         numberCamera;
 

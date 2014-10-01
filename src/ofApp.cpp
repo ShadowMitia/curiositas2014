@@ -9,19 +9,14 @@ void testApp::setup() {
 	w = kinectPlayer1.getWidth();
 	h = kinectPlayer1.getHeight();
 
+	resize = 4;
     
     //reserve memory for cv images
-	hsbKinect1.allocate(w, h);
 	hueKinect1.allocate(w, h);
 	filteredKinect1.allocate(w, h);
 
 	//reserve memory for cv images
-	rgbKinect2.allocate(w, h);
-	hsbKinect2.allocate(w, h);
 	hueKinect2.allocate(w, h);
-	satKinect2.allocate(w, h);
-
-	briKinect2.allocate(w, h);
 	filteredKinect2.allocate(w, h);
 
 
@@ -90,7 +85,7 @@ void testApp::setup() {
 
     // sphere
     sphere = new ofxBulletSphere();
-	sphere->create(world.world, ofVec3f(0, -500, 0), 5, 30);
+	sphere->create(world.world, ofVec3f(0, -1000, 0), 5, 30);
 	sphere->setProperties(10, 1.5);
 	sphere->add();
 
@@ -193,8 +188,10 @@ void testApp::update(){
     
 		if (kinectPlayer1.isFrameNew()) {
         
+			hsbKinect1.resize(w, h);
 			//copy webcam pixels to rgb image
 			hsbKinect1.setFromPixels(kinectPlayer1.getPixels(), w, h);
+			hsbKinect1.resize(w, h);
 
 			//convert to hsb
 			hsbKinect1.convertRgbToHsv();
@@ -211,15 +208,23 @@ void testApp::update(){
 			//run the contour finder on the filtered image to find blobs with a certain hue
 			contoursKinect1.findContours(filteredKinect1, 100, w*h, 1, false, true);
 
-
-			/// ROI
-			int extraSpace = 10;
-			/*
 			if (contoursKinect1.nBlobs > 0) {
-				hsbKinect1.setROI(contoursKinect1.blobs[0].centroid.x, contoursKinect1.blobs[0].centroid.y, contoursKinect1.blobs[0].boundingRect.width + extraSpace, contoursKinect1.blobs[0].boundingRect.height + extraSpace);
-				roiRect = hsbKinect1.getROI();
+
+				centroidX = contoursKinect1.blobs[0].centroid.x;
+				centroidY = contoursKinect1.blobs[0].centroid.y;
+
+				//centroidZ = movie.getDistanceAt(centroidX, centroidY) + (height / 2);
+
+				//centroidZ = movie.getDistanceAt(centroidX, centroidY) + (400 / 2);
+				width = contoursKinect1.blobs[0].boundingRect.width / 2;
+				height = contoursKinect1.blobs[0].boundingRect.height / 2;
+
+				top = ofVec3f(centroidX, centroidY - height / 2);
+				bottom = ofVec3f(centroidX, centroidY +  height / 2 );
+
+				left = ofVec3f(centroidX + width / 2, centroidY);
+				right = ofVec3f(centroidX - width / 2, centroidY);
 			}
-			*/
 		}
 
 		
@@ -230,39 +235,6 @@ void testApp::update(){
 		// you also need to "activate" it with activate()
 
 		if (contoursKinect1.nBlobs > 0) {
-
-			oldCentroidX = centroidX;
-			oldCentroidY = centroidY;
-			oldCentroidZ = centroidZ;
-
-			centroidX = contoursKinect1.blobs[0].centroid.x;
-			centroidY = contoursKinect1.blobs[0].centroid.y;
-			centroidZ = kinectPlayer1.getDistanceAt(centroidX, centroidY) + (height / 2);
-
-			float ww = contoursKinect1.blobs[0].boundingRect.width / 4;
-			float hh = contoursKinect1.blobs[0].boundingRect.height / 4;
-			/*
-			top = kinectPlayer1.getWorldCoordinateAt(centroidX, centroidY + hh);
-			left = kinectPlayer1.getWorldCoordinateAt(centroidX+ww, centroidY);
-			right = kinectPlayer1.getWorldCoordinateAt(centroidX-ww, centroidY);
-			bottom = kinectPlayer1.getWorldCoordinateAt(centroidX, centroidY - hh);
-
-			racket1Angle = (90 / 75 ) * (left.z - right.z) ;
-
-			*/
-
-			racket1Mesh.clear();
-			racket1Mesh.setMode(OF_PRIMITIVE_POINTS);
-
-			racket1Mesh.addVertex(kinectPlayer1.getWorldCoordinateAt(centroidX, centroidY + hh)); //top
-			racket1Mesh.addVertex(kinectPlayer1.getWorldCoordinateAt(centroidX+ww, centroidY)); // left
-			racket1Mesh.addVertex(kinectPlayer1.getWorldCoordinateAt(centroidX-ww, centroidY)); // bottom
-			racket1Mesh.addVertex(kinectPlayer1.getWorldCoordinateAt(centroidX, centroidY - hh)); // right
-
-			vertices = racket1Mesh.getVertices();
-
-			racket1Angle = (90 / 75 ) * (vertices[1].z - vertices[3].z) ;
-
 
 			/*
 			btTransform coord;
@@ -297,43 +269,7 @@ void testApp::update(){
 //--------------------------------------------------------------
 void testApp::draw(){
 	
-    //draw all cv images
 
-	if (kinectPlayer1.isConnected()){
-
-		if (showVideoFeed) {
-			filteredKinect1.draw(0,0);
-			contoursKinect1.draw(0,0);
-			/*
-			ofSetColor(255, 0, 0);
-			ofCircle(centroidX, centroidY, 5);
-			
-			ofSetColor(255, 0, 255);
-
-			ofCircle(top, 2);
-			ofCircle(left, 2);
-			ofCircle(bottom, 2);
-			ofCircle(right, 2);
-			
-			ofLine(top, bottom);
-			ofLine(left, right);
-			*/
-			
-		}
-		
-
-
-
-	}
-	
-
-	if (kinectPlayer2.isConnected() ){
-		if (showVideoFeed) {
-		rgbKinect2.draw(w,0);
-		filteredKinect2.draw(w, h);
-		contoursKinect2.draw(w, 0);
-		}
-	}
 
     ofSetColor(255, 0, 0);
     ofFill();
@@ -433,6 +369,76 @@ void testApp::draw(){
     ofSetColor(255, 0, 0);
 	ofDrawBitmapString(ss.str().c_str(), 10, 10);
 
+
+	
+	cout << "w/" << resize << ": " << w / resize <<  " " << " h/" << resize << ": " << h / resize << endl;
+
+
+	ofSetColor(255, 0, 0);
+			stringstream output;
+			if (contoursKinect1.nBlobs){
+				output.clear();
+				output << "rectangle violet" << endl;
+				output << "x: " << contoursKinect1.blobs[0].centroid.x << " y: " << contoursKinect1.blobs[0].centroid.y << endl;
+				output << kinectPlayer1.getWorldCoordinateAt(contoursKinect1.blobs[0].centroid.x, contoursKinect1.blobs[0].centroid.y) << endl;
+				
+				output << "left: " << left << " right: " << right << endl;
+				output <<  kinectPlayer1.getWorldCoordinateAt(left.x, left.y) << " =  " << kinectPlayer1.getWorldCoordinateAt(right.x, right.y) << endl;
+				ofVec3f tmp = kinectPlayer1.getWorldCoordinateAt(right.x, right.y);
+				ofVec3f tmp2 = kinectPlayer1.getWorldCoordinateAt(left.x, left.y);
+				output << "delta: " << tmp.z - tmp2.z << endl;
+			}
+			ofDrawBitmapString(output.str(), w+50, 400);
+			if (contoursKinect1.nBlobs > 0) {
+				int w = 640;
+				int h = 480;
+				ofMesh mesh;
+				mesh.setMode(OF_PRIMITIVE_POINTS);
+				int step = 2;
+				for(int y = contoursKinect1.blobs[0].boundingRect.y; y < contoursKinect1.blobs[0].boundingRect.height * resize; y += step) {
+					for(int x = contoursKinect1.blobs[0].boundingRect.x; x < contoursKinect1.blobs[0].boundingRect.width * resize; x += step) {
+						if(kinectPlayer1.getDistanceAt(x, y) > 0) {
+							mesh.addColor(kinectPlayer1.getColorAt(x,y));
+							mesh.addVertex(kinectPlayer1.getWorldCoordinateAt(x, y));
+
+						}
+					}
+				}
+				easyDebugCam.begin();
+				glPointSize(3);
+				ofPushMatrix();
+				// the projected points are 'upside down' and 'backwards' 
+				ofScale(1, -1, -1);
+				ofTranslate(0, 0, -1000); // center the points a bit
+				ofEnableDepthTest();
+				mesh.drawVertices();
+				ofDisableDepthTest();
+				ofPopMatrix();
+				easyDebugCam.end();
+			}
+
+
+		//draw all cv images
+
+		if (kinectPlayer1.isConnected()){
+
+			if (showVideoFeed) {
+				filteredKinect1.draw(0,0);
+				contoursKinect1.draw(0,0);
+			}
+		
+
+
+
+		}
+	
+
+		if (kinectPlayer2.isConnected() ){
+			if (showVideoFeed) {
+			filteredKinect2.draw(w, h);
+			contoursKinect2.draw(w, 0);
+			}
+		}
 }
 
 //--------------------------------------------------------------

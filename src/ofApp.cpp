@@ -177,7 +177,6 @@ void testApp::update(){
 
     fluid.update();
 
-	
 
 	//// KINECT + OPENCV
 
@@ -236,29 +235,111 @@ void testApp::update(){
 
 		if (contoursKinect1.nBlobs > 0) {
 
-			/*
-			btTransform coord;
-			racketPlayer1->getRigidBody()->getMotionState()->getWorldTransform(coord);
 
-			btQuaternion rotation = coord.getRotation();
+			//btTransform coord;
+			//racketPlayer1->getRigidBody()->getMotionState()->getWorldTransform(coord);
 
-			btVector3 offset = coord.getOrigin();
-			rotation.setRotation( rotation.getAxis(), rotation.getAngle() + 90);
-			coord.setOrigin(btVector3(0., 0., 0.));
-			coord.setRotation(rotation);
-			coord.setOrigin(offset);
-			racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform(coord);
-			*/
+			//btQuaternion rotation = coord.getRotation();
+
+			//btVector3 offset = coord.getOrigin();
+			//rotation.setRotation( rotation.getAxis(), rotation.getAngle() + 90);
+			//coord.setOrigin(btVector3(0., 0., 0.));
+			//coord.setRotation(rotation);
+			//coord.setOrigin(offset);
+			//racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform(coord);
 
 			btTransform newCoordinate;
 
 			int zModulo = (int)(height / 2);
 
 			racketPlayer1->getRigidBody()->getMotionState()->getWorldTransform(newCoordinate);
-			newCoordinate.getOrigin() += btVector3( /*-1 * (centroidX - oldCentroidX) % (int)width*/ 0, /* (centroidY - oldCentroidY) % (int)(height / 3)*/ 0, (centroidZ - oldCentroidZ) % zModulo);
+			newCoordinate.getOrigin() += btVector3(  0,  0, (centroidZ - oldCentroidZ) % zModulo);
 			racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform(newCoordinate);
 
 			racketPlayer1->activate();
+		}
+
+	}
+
+
+	if (kinectPlayer2.isConnected()) {
+		
+		kinectPlayer2.update();
+
+    
+		if (kinectPlayer2.isFrameNew()) {
+        
+			hsbKinect2.resize(w, h);
+			//copy webcam pixels to rgb image
+			hsbKinect2.setFromPixels(kinectPlayer2.getPixels(), w, h);
+			hsbKinect2.resize(w, h);
+
+			//convert to hsb
+			hsbKinect2.convertRgbToHsv();
+			hsbKinect2.convertToGrayscalePlanarImage(hueKinect2, 0);
+
+			for (int i = 0; i < w * h; i++) {
+				filteredKinect2.getPixels()[i] = ofInRange(hueKinect2.getPixels()[i],findHue-10,findHue+10) ? 255 : 0;
+			}
+
+			//filteredKinect2.setFromPixels(filteredKinect2.getRoiPixels(), roiRect.width, roiRect.height);
+
+
+			filteredKinect2.flagImageChanged();
+			//run the contour finder on the filtered image to find blobs with a certain hue
+			contoursKinect2.findContours(filteredKinect2, 100, w*h, 1, false, true);
+
+			if (contoursKinect2.nBlobs > 0) {
+
+				centroidX = contoursKinect2.blobs[0].centroid.x;
+				centroidY = contoursKinect2.blobs[0].centroid.y;
+
+				//centroidZ = movie.getDistanceAt(centroidX, centroidY) + (height / 2);
+
+				//centroidZ = movie.getDistanceAt(centroidX, centroidY) + (400 / 2);
+				width = contoursKinect2.blobs[0].boundingRect.width / 2;
+				height = contoursKinect2.blobs[0].boundingRect.height / 2;
+
+				top = ofVec3f(centroidX, centroidY - height / 2);
+				bottom = ofVec3f(centroidX, centroidY +  height / 2 );
+
+				left = ofVec3f(centroidX + width / 2, centroidY);
+				right = ofVec3f(centroidX - width / 2, centroidY);
+			}
+		}
+
+		
+		//move kinematic objects http://www.bulletphysics.org/Bullet/phpBB3/viewtopic.php?p=&f=9&t=2355
+		//rotate kinematic objects http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=6282
+
+		// a kinematic object is a bullet object with no mass
+		// you also need to "activate" it with activate()
+
+		if (contoursKinect2.nBlobs > 0) {
+
+			
+			//btTransform coord;
+			//racketPlayer2->getRigidBody()->getMotionState()->getWorldTransform(coord);
+
+			//btQuaternion rotation = coord.getRotation();
+
+			//btVector3 offset = coord.getOrigin();
+			//rotation.setRotation( rotation.getAxis(), rotation.getAngle() + 90);
+			//coord.setOrigin(btVector3(0., 0., 0.));
+			//coord.setRotation(rotation);
+			//coord.setOrigin(offset);
+			//racketPlayer2->getRigidBody()->getMotionState()->setWorldTransform(coord);
+
+
+			btTransform newCoordinate;
+
+			int zModulo = (int)(height / 2);
+
+			racketPlayer2->getRigidBody()->getMotionState()->getWorldTransform(newCoordinate);
+			newCoordinate.getOrigin() += btVector3(  0,  0, (centroidZ - oldCentroidZ) % zModulo);
+			racketPlayer2->getRigidBody()->getMotionState()->setWorldTransform(newCoordinate);
+
+			racketPlayer2->activate();
 		}
 
 	}
@@ -334,11 +415,11 @@ void testApp::draw(){
 
     
     cam[numberCamera].end();
-    /*
+    
     if(numberCamera==0){
        fluid.draw(); 
     }
-    */
+    
 
   
 	//////////////////////////////////////////////////////
@@ -371,7 +452,7 @@ void testApp::draw(){
 
 
 	
-	cout << "w/" << resize << ": " << w / resize <<  " " << " h/" << resize << ": " << h / resize << endl;
+	//cout << "w/" << resize << ": " << w / resize <<  " " << " h/" << resize << ": " << h / resize << endl;
 
 
 	ofSetColor(255, 0, 0);

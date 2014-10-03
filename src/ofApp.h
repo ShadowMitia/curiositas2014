@@ -88,7 +88,8 @@ public:
     ofSpherePrimitive                   debugSphere;
     
     //fluid
-    ofxFluid                   fluid;
+    ofxFluid						fluid;
+	ofPoint						 posFluid;
 
 	// ofEvent stuff
 

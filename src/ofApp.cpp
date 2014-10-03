@@ -88,6 +88,7 @@ void testApp::setup() {
 	sphere->create(world.world, ofVec3f(0, -1000, 0), 5000, 30);
 	sphere->setProperties(10, 1.5);
 	sphere->add();
+	posFluid=ofPoint(sphere->getPosition().z,sphere->getPosition().x);
 
 
 	int racketMass = 0;
@@ -208,8 +209,15 @@ void testApp::update(){
     //debugSphere.setPosition(0, 0, 768/2);
 
     fluid.dissipation = 0.9;
-	fluid.addTemporalForce(ofPoint(width/3,height/3), ofPoint(100,0), ofFloatColor(0.5,0.1,0.8),6.f);
-   
+	
+	//fluid.addTemporalForce(ofPoint(width/3,height/3), ofPoint(100,0), ofFloatColor(0.5,0.1,0.8),6.f);
+	//
+
+
+	fluid.addTemporalForce(ofPoint(sphere->getPosition().z+width/2,sphere->getPosition().x+height/2),ofPoint(10*(sphere->getPosition().z-posFluid.x)+width,10*(sphere->getPosition().x-posFluid.y)+height/2),ofFloatColor(0.5,0.1,0.8),5.f);
+
+	posFluid=ofPoint(sphere->getPosition().z+width/2,sphere->getPosition().x+height/2);
+
 	fluid.begin();
 		ofSetColor(0,0);
 		ofSetColor(255);
@@ -290,27 +298,33 @@ void testApp::update(){
 	 
 	racketPlayer1->getRigidBody()->getMotionState()->getWorldTransform(newCoordinate);
 
-	int distanceX = (int)( positionKinect1.x - oldPositionKinect1.x ) * 2;
-	int distanceY =  (int)( positionKinect1.y - oldPositionKinect1.y ) * 2;
-	int distanceZ = (int) (positionKinect1.z - oldPositionKinect1.z ) * 2;
+	int distanceX = (int) ( positionKinect1.x - oldPositionKinect1.x );
+	int distanceY = (int) ( positionKinect1.y - oldPositionKinect1.y );
+	int distanceZ = (int) ( positionKinect1.z - oldPositionKinect1.z );
 
 	
-	int h = height / 3;
+	int h = height / 2;
 	int w = width / 2;
 
 	btVector3 orig = newCoordinate.getOrigin();
 
-	if ( ! (orig.getX() + distanceX > w) || ! (orig.getX() + distanceX < -w) ) {
+	if (  (orig.getX() + distanceX < w) && (orig.getX() + distanceX > -w) ) {
 		newCoordinate.getOrigin() += btVector3( distanceX , 0, 0);
 	}
 
-	if ( ! (orig.getY() + distanceY  > h) || ! (orig.getY() + distanceY < 50) ) {
+	if (positionKinect1.x == 0 && positionKinect1.y == 0 && positionKinect1.z == 0) {
+		newCoordinate.getOrigin() = btVector3(0, 0, 0);
+	}
+
+	if (  (orig.getY() + distanceY  < h) && (orig.getY() + distanceY > -50) ) {
 		newCoordinate.getOrigin() += btVector3( 0 , distanceY, 0); // y axis is "upside down"
 	}
 
-	if ( ! (orig.getZ() + distanceZ < -30) || ! (orig.getZ() + distanceZ > 30) ){
+	
+	if ( (orig.getZ() + distanceZ > 0) && (orig.getZ() + distanceZ < 1200) ){
 		newCoordinate.getOrigin() += btVector3( 0, 0, distanceZ);
 	}
+	
 
 	racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform(newCoordinate);
 	racketPlayer1->activate();
@@ -331,7 +345,7 @@ void testApp::update(){
 		 if (message.getAddress() == "/kinect1/position") {
 			positionKinect1.x = message.getArgAsFloat(0);
 			positionKinect1.y = message.getArgAsFloat(1);
-			positionKinect1.z = 0; //message.getArgAsFloat(2);
+			positionKinect1.z = message.getArgAsFloat(2);
 			racket1AngleHori = message.getArgAsFloat(3);
 			racket1AngleVerti = message.getArgAsFloat(4);
 		 }
@@ -422,6 +436,7 @@ void testApp::draw(){
 
 	ss << endl << "centroid: " << positionKinect1 << endl;
 	ss << endl << "old " << oldPositionKinect1 << endl;
+	ss << endl << "delta " << racketPlayer1->getPosition().z - positionKinect1.z << endl;
 	ss << endl << "angle hori" << racket1AngleHori << endl;
 	ss << endl << "angle verti" << racket1AngleVerti << endl;
 

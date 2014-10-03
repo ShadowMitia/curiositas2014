@@ -38,6 +38,9 @@ public:
 
 	float racket1AngleHori;
 	float racket1AngleVerti;
+
+		float racket2AngleHori;
+	float racket2AngleVerti;
     
     int w,h; // width and height of kinects
 
@@ -98,24 +101,6 @@ public:
 	// OSC stuff
 
 	ofxOscReceiver receiver;
-
-
-
-	// trucs pourris
-
-	float UP;
-	float FORWARD;
-	float LEFT;
-
-
-
-
-
-	float roll;
-	float pitch;
-	float heading;
-	int incDir;
-	ofVec3f EulerRot;
 
 
 };

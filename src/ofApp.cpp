@@ -1,5 +1,19 @@
 #include "ofApp.h"
 
+
+
+
+ofVec3f Znormal(0, 0, 1);
+ofVec3f Xnormal(1, 0, 0);
+ofVec3f Ynormal(1, 0, 1);
+
+
+
+
+
+
+
+
 //--------------------------------------------------------------
 void testApp::setup() {
 	ofLogLevel(OF_LOG_VERBOSE);
@@ -66,14 +80,8 @@ void testApp::setup() {
 	ground.setProperties(.25, .95);
 	ground.add();
 
-	/*
-	areaWalls[0].create( world.world, ofVec3f(0. , 0., 0.), 0., 2000, 5, width / 2);
-	areaWalls[0].add();
+	
 
-	areaWalls[1].create( world.world, ofVec3f(0. , 0., 0.), 0.,2000, 5, -width / 2);
-	areaWalls[1].add();
-
-	*/
 
     // sphere
     sphere = new ofxBulletSphere();
@@ -104,7 +112,7 @@ void testApp::setup() {
 	btQuaternion rotation = coord.getRotation();
 
 	btVector3 offset = coord.getOrigin();
-	rotation.setRotation( rotation.getAxis(), PI / 4);
+	rotation.setRotation( rotation.getAxis(), PI / 4 );
 	coord.setOrigin(btVector3(0., 0., 0.));
 	coord.setRotation(rotation);
 	coord.setOrigin(offset);
@@ -113,6 +121,44 @@ void testApp::setup() {
 	racketPlayer2 = new ofxBulletCylinder();
 	racketPlayer2->create(world.world, ofVec3f(200, -100, 0), racketMass, racketRadius, racketHeight);
 	racketPlayer2->add();
+
+
+	/*
+
+
+	areaWalls[0].create( world.world, ofVec3f(width / 2 , 0., 0.), 0., width, 5, height);
+	areaWalls[0].add();
+	areaWalls[0].enableKinematic();
+	areaWalls[0].activate();
+
+	areaWalls[0].getRigidBody()->getMotionState()->getWorldTransform(coord);
+	rotation = coord.getRotation();
+	offset = coord.getOrigin();
+	rotation.setRotation( rotation.getAxis(), PI / 2 );
+
+	coord.setOrigin(btVector3(0. , 0., 0.));
+	coord.setRotation(rotation);
+	coord.setOrigin(offset);
+	areaWalls[0].getRigidBody()->getMotionState()->setWorldTransform(coord);
+
+
+
+
+	areaWalls[1].create( world.world, ofVec3f(-width / 2 , 0., 0.), 0.,width, 5, height);
+	areaWalls[1].add();
+
+	areaWalls[1].getRigidBody()->getMotionState()->getWorldTransform(coord);
+	rotation = coord.getRotation();
+	offset = coord.getOrigin();
+	rotation.setRotation( rotation.getAxis() , PI / 2);
+	coord.setOrigin(btVector3(0. , 0., 0.));
+	coord.setRotation(rotation);
+	coord.setOrigin(offset);
+	areaWalls[1].getRigidBody()->getMotionState()->setWorldTransform(coord);
+
+
+	*/
+
     
     // fluid 
     fluid.allocate(width,height);
@@ -126,6 +172,26 @@ void testApp::setup() {
 
 	oldPositionKinect1 = ofVec3f(0, 0, 0);
 	oldPositionKinect2 = ofVec3f(0, 0, 0);
+
+
+
+
+
+
+
+
+
+
+
+
+	incDir	= 1;
+	roll	= 0;
+	pitch	= -27;
+	heading	= 45;
+
+
+
+
 }
 
 
@@ -169,28 +235,91 @@ void testApp::update(){
 	// you also need to "activate" it with activate()
 
 
+	//http://forum.openframeworks.cc/t/how-to-rotate-and-translate-a-ofxbullet-body/7954/4
 
-	//btTransform coord;
-	//racketPlayer1->getRigidBody()->getMotionState()->getWorldTransform(coord);
+	/*
+	btTransform coord;
+	racketPlayer1->getRigidBody()->getMotionState()->getWorldTransform(coord);
+	btQuaternion rotation = coord.getRotation();
+	btVector3 offset = coord.getOrigin();
+	btVector3 rot = btVector3( 0, rotation.getY(), 0);
+	rotation.setRotation(rot, racket1Angle);
+	coord.setOrigin(btVector3(0., 0., 0.));
+	coord.setRotation(rotation);
+	coord.setOrigin(offset);
+	racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform(coord);
 
-	//btQuaternion rotation = coord.getRotation();
+	*/
+	
 
-	//btVector3 offset = coord.getOrigin();
-	//rotation.setRotation( rotation.getAxis(), rotation.getAngle() + 90);
-	//coord.setOrigin(btVector3(0., 0., 0.));
-	//coord.setRotation(rotation);
-	//coord.setOrigin(offset);
-	//racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform(coord);
+	ofVec3f pos = racketPlayer1->getPosition();
 
-	btTransform newCoordinate;
+	btTransform trans;
+	trans.setOrigin( btVector3( btScalar( pos.x), btScalar( pos.y), btScalar( pos.z) ) );
 
-	int zModulo = (int)(height / 2);
+	ofQuaternion rotQuat = racketPlayer1->getRotationQuat();
 
-	racketPlayer1->getRigidBody()->getMotionState()->getWorldTransform(newCoordinate);
-	newCoordinate.getOrigin() += btVector3(  oldPositionKinect1.x - positionKinect1.x ,  oldPositionKinect2.y - positionKinect2.y , 0);
-	racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform(newCoordinate);
+	cout << "rotation " << rotQuat.w() << endl;
+
+	trans.setRotation( btQuaternion(btVector3(1, 0, 0), racket1AngleHori));
+
+
+	racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform( trans );
 
 	racketPlayer1->activate();
+
+
+
+	/*
+
+	trans.setOrigin( btVector3( btScalar( pos.x), btScalar( pos.y), btScalar( pos.z) ) );
+
+	rotQuat = racketPlayer1->getRotationQuat();
+	
+	trans.setRotation( btQuaternion(btVector3(0, 0, 1), racket1AngleHori ));
+
+	racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform( trans );
+
+	racketPlayer1->activate();
+	*/
+
+
+
+
+	btTransform newCoordinate;
+	 
+	racketPlayer1->getRigidBody()->getMotionState()->getWorldTransform(newCoordinate);
+
+	int distanceX = (int)( positionKinect1.x - oldPositionKinect1.x ) * 2;
+	int distanceY =  (int)( positionKinect1.y - oldPositionKinect1.y ) * 2;
+	int distanceZ = (int) (positionKinect1.z - oldPositionKinect1.z ) * 2;
+
+	
+	int h = height / 3;
+	int w = width / 2;
+
+	btVector3 orig = newCoordinate.getOrigin();
+
+	if ( ! (orig.getX() + distanceX > w) || ! (orig.getX() + distanceX < -w) ) {
+		newCoordinate.getOrigin() += btVector3( distanceX , 0, 0);
+	}
+
+	if ( ! (orig.getY() + distanceY  > h) || ! (orig.getY() + distanceY < 50) ) {
+		newCoordinate.getOrigin() += btVector3( 0 , distanceY, 0); // y axis is "upside down"
+	}
+
+	if ( ! (orig.getZ() + distanceZ < -30) || ! (orig.getZ() + distanceZ > 30) ){
+		newCoordinate.getOrigin() += btVector3( 0, 0, distanceZ);
+	}
+
+	racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform(newCoordinate);
+	racketPlayer1->activate();
+
+	FORWARD = 0;
+	UP = 0;
+
+	cout << oldPositionKinect1 << " " << positionKinect1 << endl;
+	oldPositionKinect1 = positionKinect1;
 
 
 	while (receiver.hasWaitingMessages()) {
@@ -198,29 +327,26 @@ void testApp::update(){
 
 		receiver.getNextMessage(&message);
 
-		positionKinect1 = ofVec3f(0, 0, 0);
-		positionKinect2 = ofVec3f(0, 0, 0);
-
 
 		 if (message.getAddress() == "/kinect1/position") {
 			positionKinect1.x = message.getArgAsFloat(0);
 			positionKinect1.y = message.getArgAsFloat(1);
-			positionKinect1.z = message.getArgAsFloat(2);
-			cout <<"kinect 1 pos: " << positionKinect1 << endl;
-		}
+			positionKinect1.z = 0; //message.getArgAsFloat(2);
+			racket1AngleHori = message.getArgAsFloat(3);
+			racket1AngleVerti = message.getArgAsFloat(4);
+		 }
 
 		 if (message.getAddress() == "/kinect2/position") {
 			positionKinect2.x = message.getArgAsFloat(0);
 			positionKinect2.y = message.getArgAsFloat(1);
 			positionKinect2.z = message.getArgAsFloat(2);
-			cout <<"kinect 2 pos: " << positionKinect2 << endl;
 		}
 
-		oldPositionKinect1.set(positionKinect1);
-		oldPositionKinect2.set(positionKinect2);
+		
 
 		 
 	}
+
 }
 
 //--------------------------------------------------------------
@@ -263,8 +389,9 @@ void testApp::draw(){
     ofSetColor(225, 0, 225, 255);
 	sphere->draw();
 
-	
+	ofSphere(0, 0, 0, 10);
 
+			
 	ofSetColor(0, 0, 255, 255);
 	racketPlayer1->draw();
 
@@ -293,8 +420,10 @@ void testApp::draw(){
 	ss << "sphere: " << sphere->getPosition() << endl;
 	ss << endl;
 
-		ss << endl << "centroid: " << positionKinect1 << endl;
-		ss << endl << "old " << oldPositionKinect1 << endl;
+	ss << endl << "centroid: " << positionKinect1 << endl;
+	ss << endl << "old " << oldPositionKinect1 << endl;
+	ss << endl << "angle hori" << racket1AngleHori << endl;
+	ss << endl << "angle verti" << racket1AngleVerti << endl;
 
     ofSetColor(255, 0, 0);
 	ofDrawBitmapString(ss.str().c_str(), 10, 10);

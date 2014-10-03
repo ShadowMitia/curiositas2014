@@ -36,7 +36,8 @@ public:
 
 	ofPoint top, left, bottom, right;
 
-	float racket1Angle;
+	float racket1AngleHori;
+	float racket1AngleVerti;
     
     int w,h; // width and height of kinects
 
@@ -104,6 +105,17 @@ public:
 	float UP;
 	float FORWARD;
 	float LEFT;
+
+
+
+
+
+	float roll;
+	float pitch;
+	float heading;
+	int incDir;
+	ofVec3f EulerRot;
+
 
 };
 

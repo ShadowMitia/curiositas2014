@@ -51,7 +51,7 @@ void testApp::setup() {
 	
 
 	// change gravity (mouahahaha)
-    gravity=ofVec3f(0,300,0);
+    gravity=ofVec3f(0,200,0);
 	world.setGravity(gravity);
 
 	// create the ground
@@ -64,7 +64,7 @@ void testApp::setup() {
 
     // sphere
 		sphere = new ofxBulletSphere();
-		sphere->create(world.world, ofVec3f(0, -300, 550), 50000, 30);
+		sphere->create(world.world, ofVec3f(0, -300, 550), 50, 30);
 		sphere->setProperties(4, 0);
 		sphere->add();   
 		
@@ -187,7 +187,7 @@ void testApp::setup() {
 
 
 
-
+	service = true;
 
 }
 
@@ -235,7 +235,7 @@ void testApp::update(){
 	/////// destor espace boullet /////
 	if (sphere->getPosition().x > 600 || sphere->getPosition().x < -600 || sphere->getPosition().y > 50 || sphere->getPosition().z > 1200 || sphere->getPosition().z < -1200){
 		sphereCreat();
-
+		service = true;
 	
 	}
 	ofSetWindowTitle(ofToString(ofGetFrameRate(), 0));
@@ -258,11 +258,27 @@ void testApp::update(){
 	
 	btVector3 velocity = sphere->getRigidBody()->getLinearVelocity();
 
-	if ( sqrt( velocity.getX() * velocity.getX() + velocity.getY() * velocity.getY()+ velocity.getZ() * velocity.getZ()) > 1000){
-		velocity.normalize();
-		velocity *= 1000;
+	int maxSpeed = 500;
+
+	float norm = sqrt( velocity.getX() * velocity.getX() +  velocity.getZ() * velocity.getZ());
+
+	if (norm != 0) {
+
+	if ( norm > maxSpeed){
+		velocity.setX( (velocity.getX() / norm) * maxSpeed);
+		velocity.setZ( (velocity.getZ() / norm) * maxSpeed);
 	}
 
+	if (!service){
+		int minSpeed = 50;
+		if (norm < minSpeed ) {
+			velocity.setX( (velocity.getX() / norm) * minSpeed);
+			velocity.setZ( (velocity.getZ() / norm) * minSpeed);
+		}
+
+	}
+
+	}
 	sphere->getRigidBody()->setLinearVelocity(velocity);
 
 
@@ -315,7 +331,7 @@ void testApp::update(){
 
 	ofQuaternion rotQuat = racketPlayer1->getRotationQuat();
 
-
+	/*
 	/// BEGIN MAGIC
 
 	/// DO NOT TOUCH !!!!
@@ -324,7 +340,9 @@ void testApp::update(){
 
 
 	/// END MAGIC
+	*/
 
+	trans.setRotation( btQuaternion(btVector3(1, 0, 0), PI / 2) * btQuaternion(btVector3(0, 0, 1), racket1AngleVerti  * 2 * PI / 180 ));
 
 	racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform( trans );
 
@@ -334,8 +352,8 @@ void testApp::update(){
 	
 	racketPlayer1->getRigidBody()->getMotionState()->getWorldTransform(newCoordinate);
 
-
-	newCoordinate.getOrigin() = btVector3(-positionKinect1.x*(400/320),positionKinect1.y + 30,positionKinect1.z);
+	// newCoordinate.getOrigin() = btVector3(-positionKinect1.x*(400/320),positionKinect1.y,-positionKinect1.z);
+	newCoordinate.getOrigin() = btVector3(-positionKinect1.x*(400/320),sphere->getPosition().y,positionKinect1.z);
 
 	racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform(newCoordinate);
 	racketPlayer1->activate();
@@ -357,7 +375,7 @@ void testApp::update(){
 	rotQuat2 = racketPlayer2->getRotationQuat();
 
 
-
+	/*
 	/// BEGIN MAGIC
 
 	/// DO NOT TOUCH !!!!
@@ -365,7 +383,9 @@ void testApp::update(){
 	trans2.setRotation( btQuaternion(btVector3(1, 0, 0), racket2AngleHori * 2 * PI / 180 * -1) * btQuaternion(btVector3(0, 0, 1), racket2AngleVerti  * 2 * PI / 180 ));
 
 	/// END MAGIC
+	*/
 
+	trans2.setRotation( btQuaternion(btVector3(1, 0, 0), PI / 2) * btQuaternion(btVector3(0, 0, 1), racket2AngleVerti  * 2 * PI / 180 ));
 
 	racketPlayer2->getRigidBody()->getMotionState()->setWorldTransform( trans2 );
 
@@ -375,7 +395,8 @@ void testApp::update(){
 	
 	racketPlayer2->getRigidBody()->getMotionState()->getWorldTransform(newCoordinate);
 
-	newCoordinate.getOrigin() = btVector3(-positionKinect2.x*(400/320),positionKinect2.y,-positionKinect2.z);
+	// newCoordinate.getOrigin() = btVector3(-positionKinect2.x*(400/320),positionKinect2.y,-positionKinect2.z);
+	newCoordinate.getOrigin() = btVector3(-positionKinect2.x*(400/320),sphere->getPosition().y,-positionKinect2.z);
 
 	racketPlayer2->getRigidBody()->getMotionState()->setWorldTransform(newCoordinate);
 	racketPlayer2->activate();
@@ -583,6 +604,10 @@ void testApp::onCollision(ofxBulletCollisionData& cdata){
 	if (ground == cdata && *sphere == cdata) {
 		colFluid =ofPoint(sphere->getPosition().z+width/2,sphere->getPosition().x+height/2);
 	}
+
+	if ( (*racketPlayer1 == cdata && *sphere == cdata) || (*racketPlayer2 == cdata && *sphere == cdata) ) {
+		service = false;
+	}
 /*
 	if (areaWalls[0] == cdata) {
 		cout << "wall 0 collision " << endl;
@@ -598,11 +623,11 @@ void testApp::sphereCreat(){
 	
 	   sphere->remove();
 	   delete sphere;
-
 		sphere = new ofxBulletSphere();
-		sphere->create(world.world, ofVec3f(0, -300, 550), 50000, 20);
-		sphere->setProperties(5, 0.5);
+		sphere->create(world.world, ofVec3f(0, -300, 550), 50, 30);
+		sphere->setProperties(4, 0);
 		sphere->add();   
+		
 		
 
 }

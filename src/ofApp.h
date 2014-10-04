@@ -112,6 +112,8 @@ public:
 
 	stringstream speedy;
 
+	bool service;
+
 };
 
 #endif

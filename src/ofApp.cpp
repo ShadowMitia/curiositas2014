@@ -56,7 +56,7 @@ void testApp::setup() {
 
 	// create the ground
     ground.create( world.world, ofVec3f(0., 0., 0.), 0., height, -1.f, width );
-	ground.setProperties(.25, .95);
+	ground.setProperties(.25, 0);
 	ground.add();
 
 	
@@ -65,7 +65,7 @@ void testApp::setup() {
     // sphere
 		sphere = new ofxBulletSphere();
 		sphere->create(world.world, ofVec3f(0, -300, 550), 50000, 30);
-		sphere->setProperties(4, 4);
+		sphere->setProperties(4, 0);
 		sphere->add();   
 		
 
@@ -84,7 +84,7 @@ void testApp::setup() {
 
 	racketPlayer1 = new ofxBulletCylinder();
 	racketPlayer1->create(world.world, ofVec3f(0, 0, 0), racketMass, racketRadius, racketHeight);
-	racketPlayer1->setProperties(.25, 0.95);
+	racketPlayer1->setProperties(.25, 0);
 	racketPlayer1->add();
 	racketPlayer1->enableKinematic();
 	racketPlayer1->activate();
@@ -246,25 +246,50 @@ void testApp::update(){
     //debugSphere.setPosition(0, 0, 768/2);
 
     fluid.dissipation = 0.99;
-	
+	fluid.velocityDissipation = 0.99;
 	//fluid.addTemporalForce(ofPoint(width/3,height/3), ofPoint(100,0), ofFloatColor(0.5,0.1,0.8),6.f);
 	//
 
+	btVector3 speed = sphere->getRigidBody()->getLinearVelocity();
+	speed.setY(0);
+	
+	speed.normalize();
+	speed *= 50;
+	
+	btVector3 velocity = sphere->getRigidBody()->getLinearVelocity();
 
-	fluid.addTemporalForce(ofPoint(sphere->getPosition().z+width/2,sphere->getPosition().x+height/2),ofPoint(100,100),ofFloatColor(0.5,0.1,0.8),5.f);
+	if ( sqrt( velocity.getX() * velocity.getX() + velocity.getY() * velocity.getY()+ velocity.getZ() * velocity.getZ()) > 1000){
+		velocity.normalize();
+		velocity *= 1000;
+	}
+
+	sphere->getRigidBody()->setLinearVelocity(velocity);
+
+
+	speed.setX(speed.getX() * -1);
+	speed.setZ(speed.getZ() * -1);
+
+	fluid.addTemporalForce(ofPoint(sphere->getPosition().z+width/2,sphere->getPosition().x+height/2),ofPoint(speed.getZ(), speed.getX()),ofFloatColor(0.5,0.1,0.8),5.f);
+
+	
+	//fluid.addTemporalForce(ofPoint(width/2,height/2),ofPoint(10*cos(atan(-sphere->getPosition().z+width/2+posFluid.x)),0),ofFloatColor(0.5,0.1,0.8),5.f);
 
 	posFluid=ofPoint(sphere->getPosition().z+width/2,sphere->getPosition().x+height/2);
+	
+	
 
 	fluid.begin();
 		ofSetColor(0,0);
 		ofSetColor(255);
-		ofCircle(width/3,height/2 , 20);
+		//ofCircle(sphere->getPosition().z+width/2+10,sphere->getPosition().x+height/2+10,10 ); // colision Fluid
     fluid.end();
     fluid.setUseObstacles(true);
-    
-        fluid.dissipation = 0.95;
+    if ( colFluid.x-posFluid.x > 10 || colFluid.y-posFluid.y > 10)
+	{
+       fluid.dissipation = 0.99;
+		fluid.velocityDissipation = 0.85;
 		fluid.addTemporalForce(colFluid, ofPoint(100*cos(ofGetElapsedTimef()*10),100*sin(ofGetElapsedTimef()*10)), ofFloatColor(0.,0.8,0.5),6.f);
-
+	}
 
     fluid.update();
 
@@ -295,7 +320,7 @@ void testApp::update(){
 
 	/// DO NOT TOUCH !!!!
 
-	trans.setRotation( btQuaternion(btVector3(1, 0, 0), racket1AngleHori * 2 * PI / 180 * -1) * btQuaternion(btVector3(0, 0, 1), racket1AngleVerti  * 2 * PI / 180 * -1));
+	trans.setRotation( btQuaternion(btVector3(1, 0, 0), racket1AngleHori * 2 * PI / 180 * -1) * btQuaternion(btVector3(0, 0, 1), racket1AngleVerti  * 2 * PI / 180 ));
 
 
 	/// END MAGIC
@@ -309,7 +334,8 @@ void testApp::update(){
 	
 	racketPlayer1->getRigidBody()->getMotionState()->getWorldTransform(newCoordinate);
 
-	newCoordinate.getOrigin() = btVector3(-positionKinect1.x*(400/320),positionKinect1.y,positionKinect1.z);
+
+	newCoordinate.getOrigin() = btVector3(-positionKinect1.x*(400/320),positionKinect1.y + 30,positionKinect1.z);
 
 	racketPlayer1->getRigidBody()->getMotionState()->setWorldTransform(newCoordinate);
 	racketPlayer1->activate();
@@ -336,7 +362,7 @@ void testApp::update(){
 
 	/// DO NOT TOUCH !!!!
 
-	trans2.setRotation( btQuaternion(btVector3(1, 0, 0), racket2AngleHori * 2 * PI / 180 * -1) * btQuaternion(btVector3(0, 0, 1), racket2AngleVerti  * 2 * PI / 180 * -1));
+	trans2.setRotation( btQuaternion(btVector3(1, 0, 0), racket2AngleHori * 2 * PI / 180 * -1) * btQuaternion(btVector3(0, 0, 1), racket2AngleVerti  * 2 * PI / 180 ));
 
 	/// END MAGIC
 
@@ -417,7 +443,9 @@ void testApp::draw(){
 	ofSetColor(0, 0, 0);
     
     //light.setOrientation(ofVec3f(x,y,z));
-    cam[numberCamera].begin();
+    if (numberCamera == 1){
+
+	cam[numberCamera].begin();
 
     ofSetColor(0, 100, 0, 255);
 	ground.draw();
@@ -436,10 +464,12 @@ void testApp::draw(){
 	racketPlayer2->draw();
 
     
-    cam[numberCamera].end();
+	cam[numberCamera].end();}
     
     if(numberCamera==0){
-      fluid.draw(); 
+      fluid.draw();
+	  ofSetColor(255,0,0);
+	  ofCircle (sphere->getPosition().z+width/2,sphere->getPosition().x+height/2,sphere->getPosition().y*-45/1000+5);
     }
     
 	//////////////////////////////////////////////////////
@@ -468,6 +498,15 @@ void testApp::draw(){
 	//ss << endl;
 	ss << endl << "centroid 2: " << positionKinect2 << endl;
 	ss << "delta 2"<< racketPlayer2->getPosition()-positionKinect2 << endl;
+
+	ss << endl;
+
+
+	
+
+	//ss << endl << endl << "speed (x, y, z) " << speed.getX() << " " << speed.getY() << " " << speed.getZ() << endl;
+
+	
 	
 	
 	//ss << endl << "old " << oldPositionKinect1 << endl;
@@ -484,6 +523,7 @@ void testApp::draw(){
 
     ofSetColor(255, 0, 0);
 	ofDrawBitmapString(ss.str().c_str(), 10, 10);
+	ofDrawBitmapString(speedy.str(), 100, 10);
 
 }
 

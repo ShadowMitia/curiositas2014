@@ -110,6 +110,8 @@ public:
 	int offsetAngleH;
 	int offsetAngleV;
 
+	stringstream speedy;
+
 };
 
 #endif

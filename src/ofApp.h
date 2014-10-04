@@ -20,7 +20,7 @@ public:
     void setup();
     void update();
     void draw();
-
+	void sphereCreat();
 	void keyPressed(int key);
     
 	// kinect stuff
@@ -93,6 +93,7 @@ public:
     //fluid
     ofxFluid						fluid;
 	ofPoint						 posFluid;
+	ofPoint						colFluid;
 
 	// ofEvent stuff
 
@@ -102,6 +103,12 @@ public:
 
 	ofxOscReceiver receiver;
 
+	bool player1TouchedBallLast;
+
+	ofPoint collisionPoint;
+
+	int offsetAngleH;
+	int offsetAngleV;
 
 };
 

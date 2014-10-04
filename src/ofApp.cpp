@@ -55,7 +55,7 @@ void testApp::setup() {
 	world.setGravity(gravity);
 
 	// create the ground
-    ground.create( world.world, ofVec3f(0., 0., 0.), 0., height, -1.f, width );
+    ground.create( world.world, ofVec3f(0., 0., 0.), 0., height, 1.f, width );
 	ground.setProperties(.25, 0);
 	ground.add();
 
@@ -126,34 +126,36 @@ void testApp::setup() {
 	racketPlayer2->getRigidBody()->getMotionState()->setWorldTransform(coord2);
 
 
-	/*
-	areaWalls[0].create( world.world, ofVec3f(width / 2 , 0., 0.), 0., width, 15, height * 2);
+	
+	areaWalls[0].create( world.world, ofVec3f(height / 2 , 0., 0.), 0., 15, width * 2, width );
 	areaWalls[0].add();
 	areaWalls[0].enableKinematic();
 	areaWalls[0].activate();
 
+	/*
 	 ofVec3f pos = areaWalls[0].getPosition();
 	btTransform trans;
 	trans.setOrigin( btVector3( btScalar( pos.x), btScalar( pos.y), btScalar( pos.z) ) );
-
 	ofQuaternion rotQuat;
 	rotQuat = areaWalls[0].getRotationQuat();
-	trans.setRotation( btQuaternion(btVector3(0, 0, 1), PI / 2) );
+	trans.setRotation( btQuaternion(btVector3(1, 0, 0), PI / 2) );
 	areaWalls[0].getRigidBody()->getMotionState()->setWorldTransform( trans );
 	areaWalls[0].activate();
+	*/
 
 
-
-	areaWalls[1].create( world.world, ofVec3f(-width / 2 , 0., 0.), 0., width, 15, height * 2);
+	areaWalls[1].create( world.world, ofVec3f(-height / 2 , 0., 0.), 0., 15 , width * 2, width );
 	areaWalls[1].add();
+	areaWalls[1].enableKinematic();
+	areaWalls[1].activate();
 
+	/*
 	pos = areaWalls[1].getPosition();
 	trans.setOrigin( btVector3( btScalar( pos.x), btScalar( pos.y), btScalar( pos.z) ) );
 	rotQuat = areaWalls[1].getRotationQuat();
-	trans.setRotation( btQuaternion(btVector3(0, 0, 1), PI / 2) );
+	trans.setRotation( btQuaternion(btVector3(1, 0, 0), PI / 2) );
 	areaWalls[1].getRigidBody()->getMotionState()->setWorldTransform( trans );
 	areaWalls[1].activate();
-
 	*/
 
     
@@ -270,7 +272,7 @@ void testApp::update(){
 	}
 
 	if (!service){
-		int minSpeed = 50;
+		int minSpeed = 100;
 		if (norm < minSpeed ) {
 			velocity.setX( (velocity.getX() / norm) * minSpeed);
 			velocity.setZ( (velocity.getZ() / norm) * minSpeed);
@@ -415,7 +417,7 @@ void testApp::update(){
 			positionKinect1.x = message.getArgAsFloat(0);
 			positionKinect1.y = message.getArgAsFloat(1);
 			positionKinect1.z = message.getArgAsFloat(2);
-			racket1AngleHori = message.getArgAsFloat(3) + 30; // correction angle
+			racket1AngleHori = message.getArgAsFloat(3); // correction angle
 			racket1AngleVerti = message.getArgAsFloat(4);
 
 			cout << "angle hori " << racket1AngleHori << endl;
@@ -426,7 +428,7 @@ void testApp::update(){
 			positionKinect2.x = message.getArgAsFloat(0);
 			positionKinect2.y = message.getArgAsFloat(1);
 			positionKinect2.z = message.getArgAsFloat(2);
-			racket2AngleHori = message.getArgAsFloat(3) - 30;
+			racket2AngleHori = message.getArgAsFloat(3);
 			racket2AngleVerti = message.getArgAsFloat(4);
 		}
 
@@ -484,6 +486,9 @@ void testApp::draw(){
 	ofSetColor(255,0,0);
 	racketPlayer2->draw();
 
+	areaWalls[0].draw();
+	areaWalls[1].draw();
+
     
 	cam[numberCamera].end();}
     
@@ -527,7 +532,7 @@ void testApp::draw(){
 
 	//ss << endl << endl << "speed (x, y, z) " << speed.getX() << " " << speed.getY() << " " << speed.getZ() << endl;
 
-	
+
 	
 	
 	//ss << endl << "old " << oldPositionKinect1 << endl;
@@ -608,7 +613,7 @@ void testApp::onCollision(ofxBulletCollisionData& cdata){
 	if ( (*racketPlayer1 == cdata && *sphere == cdata) || (*racketPlayer2 == cdata && *sphere == cdata) ) {
 		service = false;
 	}
-/*
+
 	if (areaWalls[0] == cdata) {
 		cout << "wall 0 collision " << endl;
 	}
@@ -616,7 +621,7 @@ void testApp::onCollision(ofxBulletCollisionData& cdata){
 	if (areaWalls[1] == cdata) {
 		cout << "wall 1 collision " << endl;
 	}
-	*/
+	
 }
 
 void testApp::sphereCreat(){
@@ -624,7 +629,9 @@ void testApp::sphereCreat(){
 	   sphere->remove();
 	   delete sphere;
 		sphere = new ofxBulletSphere();
+		
 		sphere->create(world.world, ofVec3f(0, -300, 550), 50, 30);
+		sphere->getRigidBody()->setLinearVelocity(btVector3(0, 0, 0));
 		sphere->setProperties(4, 0);
 		sphere->add();   
 		

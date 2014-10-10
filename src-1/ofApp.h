@@ -2,14 +2,14 @@
 #define _TEST_APP
 
 #include "ofMain.h"
+#include "ofxOpenCv.h"
+#include "ofxKinect.h"
 #include "ofxBullet.h"
 #include "ofxFluid.h"
 #include "ofxOsc.h"
 
 #include <cmath>
 #include <vector>
-#include <iterator>
-
 
 // listen on port 12345
 #define PORT 12345
@@ -26,9 +26,7 @@ public:
 	void keyPressed(int key);
     
 	// kinect stuff
-	
-    // Racket 1 et 2
-    ofVec3f positionKinect1;
+	ofVec3f positionKinect1;
 	ofVec3f positionKinect2;
 
 	ofVec3f oldPositionKinect1;
@@ -40,12 +38,11 @@ public:
 
 	ofPoint top, left, bottom, right;
 
-	float racket1AngleHori,racket1AngleVerti;
-    float racket2AngleHori,racket2AngleVerti;
-    
-    ofxBulletCylinder*                  racketPlayer1; // the racket for player 1
-	ofxBulletCylinder*                  racketPlayer2; // the racket for player 2
-    
+	float racket1AngleHori;
+	float racket1AngleVerti;
+
+	float racket2AngleHori;
+	float racket2AngleVerti;
     
     int w,h; // width and height of kinects
 
@@ -69,15 +66,20 @@ public:
     ofVec3f                             gravity;
     ofxBulletWorldRigid                 world;
 	ofxBulletBox                        ground;
-    ofxBulletBox						areaWalls[2];
+
+	ofxBulletBox						areaWalls[2];
 
 
 	bool								drawDebug;
 
 
-    // Balle
+
     ofxBulletSphere*                    sphere; // the ball
-	
+	ofxBulletCylinder*                  racketPlayer1; // the racket for player 1
+	ofxBulletCylinder*                  racketPlayer2; // the racket for player 2
+    
+    //Light
+    ofLight                             light;
     
     
     //Debug
@@ -88,15 +90,12 @@ public:
     bool                                actFluid;
 	int                                 m,s;
 	
+    ofSpherePrimitive                   debugSphere;
     
     //fluid
     ofxFluid						fluid;
-	ofPoint                         posFluid;
-	ofPoint                         colFluid;
-    //float                         RoseFluid[5];
-    
-    vector<float>                   rose;
-    list<vector<float> >            posRose;
+	ofPoint						 posFluid;
+	ofPoint						colFluid;
 
 	// ofEvent stuff
 
@@ -122,9 +121,6 @@ public:
 
 
 	ofxOscSender sender;
-
-
-	ofxOscMessage senderMessage;
 
 
 };

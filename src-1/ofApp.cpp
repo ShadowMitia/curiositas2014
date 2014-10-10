@@ -6,7 +6,7 @@ void testApp::setup() {
 	ofLogLevel(OF_LOG_VERBOSE);
 	cout << "listening for osc messages on port " << PORT << "\n";
 	receiver.setup(PORT);
-	sender.setup(HOST, SOUND_PORT);
+	sender.setup(HOST, PORT);
 
 
     ofBackground(0,0,0);
@@ -20,7 +20,7 @@ void testApp::setup() {
 
 	numberCamera=0;
     x=y=z=0;
-    width=1280;
+    width=1200;
     height=800;
     float fov=0.0001;
     m=s=0;
@@ -181,16 +181,12 @@ void testApp::setup() {
 
 
 
-    /*
-    rose[0]=0;
-    rose[1]=5;
-    posRose.push_back(rose);
 
-    
-    advance(rose, 0);
-    */
-    
-    
+
+
+
+
+
 	offsetAngleH = 0;
 	offsetAngleV = 0;
 
@@ -212,9 +208,43 @@ void testApp::setup() {
 void testApp::update(){
 
 
+	/*
+	if (sphere->getPosition().y > 100) {
+		if (player1TouchedBallLast) {
+			cout << "Player 2 scored!" << endl;
+			
+			btTransform t;
+			t.setOrigin( btVector3(0, -200, height - 25));
+			sphere->getRigidBody()->setWorldTransform(t);
+			
+			
+			sphere->remove();
+			delete sphere;
+
+			sphere = new ofxBulletSphere();
+			sphere->create(world.world, ofVec3f(0, -500, height / 2 -25), 5000, 30);
+			sphere->setProperties(10, 1.5);
+			sphere->add();
+		} else {
+			cout << "Player 1 scored!" << endl;
+			
+						btTransform t;
+			t.setOrigin( btVector3(0, -200, -height + 25));
+			sphere->getRigidBody()->setWorldTransform(t);
+			
+			sphere->remove();
+			delete sphere;
+
+			sphere = new ofxBulletSphere();
+			sphere->create(world.world, ofVec3f(0, -500, -height / 2 -25), 5000, 30);
+			sphere->setProperties(10, 1.5);
+			sphere->add();
+		}
+	}
+	*/
 
 	/////// destor espace boullet /////
-	if (sphere->getPosition().x > 600 || sphere->getPosition().x < -600 || sphere->getPosition().y > 50 || sphere->getPosition().z > 1380 || sphere->getPosition().z < -1380){
+	if (sphere->getPosition().x > 600 || sphere->getPosition().x < -600 || sphere->getPosition().y > 50 || sphere->getPosition().z > 1200 || sphere->getPosition().z < -1200){
 		createSphere(!player1TouchedBallLast);
 		service = true;
 
@@ -222,21 +252,57 @@ void testApp::update(){
 		playerTwoServed = ! playerTwoServed;
 
 	}
-    
-    
-    ////////////////////////////////////
 
 	ofSetWindowTitle(ofToString(ofGetFrameRate(), 0));
     world.update();
 	
     
-    
-    
+    //debugSphere.setPosition(0, 0, height*cos(ofGetElapsedTimef()/5));
+    //debugSphere.setPosition(0, 0, 768/2);
+
+    fluid.dissipation = 0.99;
+	fluid.velocityDissipation = 0.99;
+	//fluid.addTemporalForce(ofPoint(width/3,height/3), ofPoint(100,0), ofFloatColor(0.5,0.1,0.8),6.f);
+	//
+
 	btVector3 speed = sphere->getRigidBody()->getLinearVelocity();
 	speed.setY(0);
 	
 	speed.normalize();
-	//speed *= 50;
+	speed *= 50;
+
+	/*
+	
+	btVector3 velocity = sphere->getRigidBody()->getLinearVelocity();
+
+	int maxSpeed = 500;
+
+	
+	float norm = sqrt( velocity.getX() * velocity.getX() +  velocity.getZ() * velocity.getZ());
+
+	if (norm != 0) {
+
+		if ( norm > maxSpeed) {
+			velocity.setX( (velocity.getX() / norm) * maxSpeed);
+			velocity.setZ( (velocity.getZ() / norm) * maxSpeed);
+		}
+
+		if (!service){
+			int minSpeed = 200;
+			if (norm < minSpeed ) {
+				velocity.setX( (velocity.getX() / norm) * minSpeed);
+				velocity.setZ( (velocity.getZ() / norm) * minSpeed);
+			}
+
+		}
+
+	}
+	sphere->getRigidBody()->setLinearVelocity(velocity);
+
+	speed.setX(speed.getX() * -1);
+	speed.setZ(speed.getZ() * -1);
+
+	*/
 
 	int maxSpeed = 500;
 
@@ -250,76 +316,53 @@ void testApp::update(){
 	}
 	speed.setX(speed.getX() * -1);
 	speed.setZ(speed.getZ() * -1);
-    cout<< "vitesse"<<speed.getZ()<< endl;
+
 	sphere->getRigidBody()->setLinearVelocity(velocity);
 
-                                        //////// Fluid ALEX /////////
-    
-        /// Fluid Balle ///
-    
-    fluid.dissipation = 0.99;
-	fluid.velocityDissipation = 0.99;
+	/////alex vitesse const 
+	/*
+	btTransform newCoordinateBall	;
+	
+	newCoordinateBall.getOrigin() = btVector3(sphere->getPosition().x+0,sphere->getPosition().y,sphere->getPosition().z+10);
 
-	fluid.addTemporalForce(ofPoint((sphere->getPosition().z+width/2),sphere->getPosition().x+height/2),ofPoint(50*speed.getZ(),50* speed.getX()),ofFloatColor(0.5,0.1,0.8),sphere->getPosition().y*9/-1000+5);
+	sphere->getRigidBody()->getMotionState()->setWorldTransform(newCoordinateBall);
+	sphere->activate();
 
 
-    // obstacle //
-    
-    fluid.begin();
+	*/
+
+
+	///// fin alex 
+
+
+
+
+	fluid.addTemporalForce(ofPoint(sphere->getPosition().z+width/2,sphere->getPosition().x+height/2),ofPoint(speed.getZ(), speed.getX()),ofFloatColor(0.5,0.1,0.8),5.f);
+
+	
+	//fluid.addTemporalForce(ofPoint(width/2,height/2),ofPoint(10*cos(atan(-sphere->getPosition().z+width/2+posFluid.x)),0),ofFloatColor(0.5,0.1,0.8),5.f);
+
+	posFluid=ofPoint(sphere->getPosition().z+width/2,sphere->getPosition().x+height/2);
+	
+	
+
+	fluid.begin();
 		ofSetColor(0,0);
 		ofSetColor(255);
-		ofCircle(sphere->getPosition().z+width/2-speed.getZ()
-                 ,sphere->getPosition().x+height/2-speed.getX()
-                 ,(sphere->getPosition().y*-45/1000+5)/2 ); // colision Fluid
+		//ofCircle(sphere->getPosition().z+width/2+10,sphere->getPosition().x+height/2+10,10 ); // colision Fluid
     fluid.end();
     fluid.setUseObstacles(true);
-    
-        // Fuild Rebond update //
-    for (int i=0; i< posRose.size(); i++) {
-        rose.clear();
-        auto listpos = posRose.begin();
-        advance(listpos, i);
-        rose=*listpos;
-        
-        fluid.dissipation = 0.95;
-		//fluid.velocityDissipation=0.99;
-        fluid.velocityDissipation = 0.89;
-        fluid.addTemporalForce(ofPoint (rose[1],rose[2]), ofPoint(100*cos(ofGetElapsedTimef()*10+rose[6]),100*sin(ofGetElapsedTimef()*10+rose[7])), ofFloatColor(rose[3],rose[4],rose[5]),5.f);
-        
-    
-        
-    }
-    
+    if ( colFluid.x-posFluid.x > 10 || colFluid.y-posFluid.y > 10)
+	{
+       fluid.dissipation = 0.99;
+		fluid.velocityDissipation = 0.85;
+		fluid.addTemporalForce(colFluid, ofPoint(100*cos(ofGetElapsedTimef()*10),100*sin(ofGetElapsedTimef()*10)), ofFloatColor(0.,0.8,0.5),6.f);
+	}
 
-        /// Fuild Rebond delect ///
-    
-    for (int i=0; i< posRose.size(); i++) {
-        rose.clear();
-        auto range_begin = posRose.begin();
-        advance(range_begin,i);
-        rose=*range_begin;
-        if ((rose[0]+10<ofGetElapsedTimef() || (abs(rose[1]-(sphere->getPosition().z+width/2))< 20 && abs(rose[2]-(sphere->getPosition().x+height/2))< 20)) && rose[0]+1< ofGetElapsedTimef())
-        {
-        
+    fluid.update();
 
-            posRose.erase(range_begin);
-        }
-    }
 
-    
-    posFluid=ofPoint(sphere->getPosition().z+width/2,sphere->getPosition().x+height/2);
-    
-    
-                                            fluid.update();
-
-    
-    
-                                    ////// Fin Fuild ALEX   //////
-	
-    
-    
-    
-    //// KINECT + OPENCV
+	//// KINECT + OPENCV
 
 	//rotate kinematic objects http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=6282
 
@@ -442,8 +485,8 @@ void testApp::update(){
 
 
 
-	
-
+	ofxOscMessage senderMessage;
+	senderMessage.setAddress("/sound");
 
 }
 
@@ -506,7 +549,7 @@ void testApp::draw(){
     if(numberCamera==0){
       fluid.draw();
 	  ofSetColor(255,0,0);
-	 // ofCircle (sphere->getPosition().z+width/2,sphere->getPosition().x+height/2,sphere->getPosition().y*-45/1000+5); //ivi
+	  ofCircle (sphere->getPosition().z+width/2,sphere->getPosition().x+height/2,sphere->getPosition().y*-45/1000+5);
     }
     
 	//////////////////////////////////////////////////////
@@ -611,7 +654,6 @@ void testApp::onCollision(ofxBulletCollisionData& cdata){
 	if (*racketPlayer1 == cdata) {
 		cout << "racket 1 collision" << endl;
 		player1TouchedBallLast = true;
-
 	}
 
 	if (*racketPlayer2 == cdata){
@@ -625,27 +667,8 @@ void testApp::onCollision(ofxBulletCollisionData& cdata){
 
 	if (ground == cdata && *sphere == cdata) {
 		cout << " ground + sphere " << endl;
-        
-        /// Creat Rose Fluid ///
-        rose.clear();
-        
-        rose.push_back(ofGetElapsedTimef());
-        rose.push_back(sphere->getPosition().z+width/2);
-        rose.push_back(sphere->getPosition().x+height/2);
-        
-        rose.push_back((float) rand() / (float)RAND_MAX);
-        rose.push_back((float) rand() / (float)RAND_MAX);
-        rose.push_back((float) rand() / (float)RAND_MAX);
-        
-        rose.push_back(2*PI*(float) rand() / (float)RAND_MAX) ;
-        rose.push_back(2*PI*(float) rand() / (float)RAND_MAX) ;
-        
-        
-        
-        posRose.push_back(rose);
-       
-        
-    }
+		colFluid =ofPoint(sphere->getPosition().z+width/2,sphere->getPosition().x+height/2);
+	}
 
 	if ( (*racketPlayer1 == cdata && *sphere == cdata) || (*racketPlayer2 == cdata && *sphere == cdata) ) {
 		cout << "racket + sphere " << endl;
@@ -664,7 +687,6 @@ void testApp::onCollision(ofxBulletCollisionData& cdata){
 				velocity.setZ( ( velocity.getZ()  * (500 / norm) ));
 		}*/
 		sphere->getRigidBody()->setLinearVelocity(velocity);
-
 		
 	}
 

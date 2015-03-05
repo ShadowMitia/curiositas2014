@@ -1,9 +1,11 @@
 PongPangPing
 ============
 
-Projet Curiositas 2014 "Science fiction - Fiction de la science".
+Projet [Curiositas](http://www.crea.u-psud.fr/les-projets-%C3%A9tudiants.html?id=217) 2014 "Science fiction - Fiction de la science".
 
 Créer avec l'association [APOIL](http://www.apoil.info)
+
+
 
 Projet Ping Pong Virtuel
 ========================
